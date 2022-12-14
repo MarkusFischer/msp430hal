@@ -23,16 +23,16 @@ namespace msp430hal::usci
 
         static constexpr volatile uint8_t* usci_a_reg[][7] = {
                 {&UCA0CTL0, &UCA0CTL1, &UCA0BR0, &UCA0BR1, &UCA0STAT, &UCA0RXBUF, &UCA0TXBUF},
-        #ifdef __MSP430_HAS_USCI_AB1__
+#ifdef __MSP430_HAS_USCI_AB1__
                 {&UCA1CTL0, &UCA1CTL1, &UCA1BR0, &UCA1BR1, &UCA1STAT, &UCA1RXBUF, &UCA1TXBUF},
-        #endif
+#endif
         };
 
         static constexpr volatile uint8_t* usci_b_reg[][7] = {
                 {&UCB0CTL0, &UCB0CTL1, &UCB0BR0, &UCB0BR1, &UCB0STAT, &UCB0RXBUF, &UCB0TXBUF},
-        #ifdef __MSP430_HAS_USCI_AB1__
+#ifdef __MSP430_HAS_USCI_AB1__
                 {&UCB1CTL0, &UCB1CTL1, &UCB1BR0, &UCB1BR1, &UCB1STAT, &UCB1RXBUF, &UCB1TXBUF},
-        #endif
+#endif
         };
 
         template<UsciModule module, int instance>
@@ -44,7 +44,6 @@ namespace msp430hal::usci
                 return usci_b_reg[instance][reg_no];
         }
     }
-
 
 
     template<const UsciModule usci_module, const int instance>
@@ -85,8 +84,7 @@ namespace msp430hal::usci
                         return UCA0RXIE;
                     else
                         return UCB0RXIE;
-                    })
-                );
+                }));
             }
             #ifdef __MSP430_HAS_USCI_AB1__
             else
@@ -98,38 +96,7 @@ namespace msp430hal::usci
                         return UCA1RXIE;
                     else
                         return UCB1RXIE;
-                })
-                );
-            }
-            #endif
-        }
-
-        static inline void disableRxInterrupt()
-        {
-            if constexpr(instance == 0)
-            {
-                __asm__ __volatile__ ( "BIC.B %[ucswrst], %[ucxctl1]"
-                : [ucxctl1] "=m"(IE2)
-                : [ucswrst] "i"([&] {
-                    if constexpr(usci_module == UsciModule::usci_a)
-                        return UCA0RXIE;
-                    else
-                        return UCB0RXIE;
-                })
-                );
-            }
-            #ifdef __MSP430_HAS_USCI_AB1__
-            else
-            {
-                __asm__ __volatile__ ( "BIC.B %[ucswrst], %[ucxctl1]"
-                : [ucxctl1] "=m"(UC1IE)
-                : [ucswrst] "i"([&] {
-                    if constexpr(usci_module == UsciModule::usci_a)
-                        return UCA1RXIE;
-                    else
-                        return UCB1RXIE;
-                })
-                );
+                }));
             }
             #endif
         }
@@ -145,8 +112,7 @@ namespace msp430hal::usci
                         return UCA0TXIE;
                     else
                         return UCB0TXIE;
-                })
-                );
+                }));
             }
             #ifdef __MSP430_HAS_USCI_AB1__
             else
@@ -158,13 +124,70 @@ namespace msp430hal::usci
                         return UCA1TXIE;
                     else
                         return UCB1TXIE;
-                })
-                );
+                }));
             }
             #endif
         }
 
-        static void disableTxInterrupt()
+        static inline void enableInterrupts()
+        {
+
+            if constexpr(instance == 0)
+            {
+                __asm__ __volatile__ ( "BIS.B %[ucswrst], %[ucxctl1]"
+                : [ucxctl1] "=m"(IE2)
+                : [ucswrst] "i"([&] {
+                    if constexpr(usci_module == UsciModule::usci_a)
+                        return UCA0RXIE | UCA0TXIE;
+                    else
+                        return UCB0RXIE | UCB0TXIE;
+                })
+                );
+            }
+            #ifdef __MSP430_HAS_USCI_AB1__
+            else
+            {
+                __asm__ __volatile__ ( "BIS.B %[ucswrst], %[ucxctl1]"
+                : [ucxctl1] "=m"(UC1IE)
+                : [ucswrst] "i"([&] {
+                    if constexpr(usci_module == UsciModule::usci_a)
+                        return UCA1RXIE | UCA1TXIE;
+                    else
+                        return UCB1RXIE | UCB1TXIE;
+                }));
+            }
+            #endif
+        }
+
+        static inline void disableRxInterrupt()
+        {
+            if constexpr(instance == 0)
+            {
+                __asm__ __volatile__ ( "BIC.B %[ucswrst], %[ucxctl1]"
+                : [ucxctl1] "=m"(IE2)
+                : [ucswrst] "i"([&] {
+                    if constexpr(usci_module == UsciModule::usci_a)
+                        return UCA0RXIE;
+                    else
+                        return UCB0RXIE;
+                }));
+            }
+            #ifdef __MSP430_HAS_USCI_AB1__
+            else
+            {
+                __asm__ __volatile__ ( "BIC.B %[ucswrst], %[ucxctl1]"
+                : [ucxctl1] "=m"(UC1IE)
+                : [ucswrst] "i"([&] {
+                    if constexpr(usci_module == UsciModule::usci_a)
+                        return UCA1RXIE;
+                    else
+                        return UCB1RXIE;
+                }));
+            }
+            #endif
+        }
+
+        static inline void disableTxInterrupt()
         {
             if constexpr(instance == 0)
             {
@@ -175,8 +198,7 @@ namespace msp430hal::usci
                         return UCA0TXIE;
                     else
                         return UCB0TXIE;
-                })
-                );
+                }));
             }
             #ifdef __MSP430_HAS_USCI_AB1__
             else
@@ -188,8 +210,65 @@ namespace msp430hal::usci
                         return UCA1TXIE;
                     else
                         return UCB1TXIE;
+                }));
+            }
+            #endif
+        }
+
+        static inline void disableInterrupts()
+        {
+
+            if constexpr(instance == 0)
+            {
+                __asm__ __volatile__ ( "BIC.B %[ucswrst], %[ucxctl1]"
+                : [ucxctl1] "=m"(IE2)
+                : [ucswrst] "i"([&] {
+                    if constexpr(usci_module == UsciModule::usci_a)
+                        return UCA0RXIE | UCA0TXIE;
+                    else
+                        return UCB0RXIE | UCB0TXIE;
                 })
                 );
+            }
+            #ifdef __MSP430_HAS_USCI_AB1__
+            else
+            {
+                __asm__ __volatile__ ( "BIC.B %[ucswrst], %[ucxctl1]"
+                : [ucxctl1] "=m"(UC1IE)
+                : [ucswrst] "i"([&] {
+                    if constexpr(usci_module == UsciModule::usci_a)
+                        return UCA1RXIE | UCA1TXIE;
+                    else
+                        return UCB1RXIE | UCB1TXIE;
+                }));
+            }
+            #endif
+        }
+
+        static bool isRxInterruptPending()
+        {
+            if constexpr(instance == 0)
+            {
+                return IFG2 & [&]{ if constexpr(usci_module == UsciModule::usci_a) return UCA0RXIFG; else return UCB0RXIFG;};
+            }
+            #ifdef __MSP430_HAS_USCI_AB1__
+            else
+            {
+                return UC1IFG & [&]{ if constexpr(usci_module == UsciModule::usci_a) return UCA1RXIFG; else return UCB1RXIFG;};
+            }
+            #endif
+        }
+
+        static bool isTxInterruptPending()
+        {
+            if constexpr(instance == 0)
+            {
+                return IFG2 & [&]{ if constexpr(usci_module == UsciModule::usci_a) return UCA0TXIFG; else return UCB0TXIFG;};
+            }
+            #ifdef __MSP430_HAS_USCI_AB1__
+            else
+            {
+                return UC1IFG & [&]{ if constexpr(usci_module == UsciModule::usci_a) return UCA1TXIFG; else return UCB1TXIFG;};
             }
             #endif
         }
