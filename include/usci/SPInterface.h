@@ -58,10 +58,10 @@ namespace msp430hal::usci
         {
             Usci::disableModule();
 
-            Usci::ctl_0 = clock_mode | format | mode | 0x01;
-            Usci::ctl_1 |= clock_source;
-            Usci::br_0 = (std::uint8_t) (0x00ff & pre_scale_factor);
-            Usci::br_1 = (std::uint8_t) ((0xff00 & pre_scale_factor) >> 8);
+            *Usci::ctl_0 = clock_mode | format | mode | 0x01;
+            *Usci::ctl_1 |= clock_source;
+            *Usci::br_0 = (std::uint8_t) (0x00ff & pre_scale_factor);
+            *Usci::br_1 = (std::uint8_t) ((0xff00 & pre_scale_factor) >> 8);
 
             Usci::enableModule();
         }
@@ -69,7 +69,7 @@ namespace msp430hal::usci
         void sendByte(std::uint8_t byte)
         {
             while (!Usci::isTxInterruptPending());
-            Usci::tx_buf = byte;
+            *Usci::tx_buf = byte;
         }
 
         std::uint8_t readByte()

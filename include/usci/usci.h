@@ -249,12 +249,12 @@ namespace msp430hal::usci
         {
             if constexpr(instance == 0)
             {
-                return IFG2 & [&]{ if constexpr(usci_module == UsciModule::usci_a) return UCA0RXIFG; else return UCB0RXIFG;};
+                return IFG2 & (usci_module == UsciModule::usci_a) ? UCA0RXIFG : UCB0RXIFG;
             }
             #ifdef __MSP430_HAS_USCI_AB1__
             else
             {
-                return UC1IFG & [&]{ if constexpr(usci_module == UsciModule::usci_a) return UCA1RXIFG; else return UCB1RXIFG;};
+                return UC1IFG & (usci_module == UsciModule::usci_a) ? UCA1RXIFG : UCB1RXIFG;
             }
             #endif
         }
@@ -263,12 +263,12 @@ namespace msp430hal::usci
         {
             if constexpr(instance == 0)
             {
-                return IFG2 & [&]{ if constexpr(usci_module == UsciModule::usci_a) return UCA0TXIFG; else return UCB0TXIFG;};
+                return IFG2 & (usci_module == UsciModule::usci_a) ? UCA0TXIFG : UCB0TXIFG;
             }
             #ifdef __MSP430_HAS_USCI_AB1__
             else
             {
-                return UC1IFG & [&]{ if constexpr(usci_module == UsciModule::usci_a) return UCA1TXIFG; else return UCB1TXIFG;};
+                return UC1IFG & (usci_module == UsciModule::usci_a) ? UCA1TXIFG : UCB1TXIFG;
             }
             #endif
         }
