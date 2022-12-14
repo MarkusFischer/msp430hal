@@ -42,9 +42,52 @@ namespace msp430hal::usci
         smclk = 0x80
     };
 
-    template<typename data_type>
-    struct Foo
-    {};
+    template<const UsciModule module,
+            const int instance,
+            typename data_type = std::uint8_t,
+            SPIMode mode = master_3pin,
+            SPICharacterFormat format = msb_8bit,
+            SPIClockMode clock_mode = active_high_leading_edge,
+            SPIClockSource clock_source = smclk,
+            std::uint16_t pre_scale_factor = 1>
+    struct BlockingSpi
+    {
+        using Usci = Usci_t<module, instance>;
+
+        void init()
+        {
+            Usci::disableModule();
+
+            Usci::ctl_0 = clock_mode | format | mode | 0x01;
+            Usci::ctl_1 |= clock_source;
+            Usci::br_0 = (std::uint8_t) (0x00ff & pre_scale_factor);
+            Usci::br_1 = (std::uint8_t) ((0xff00 & pre_scale_factor) >> 8);
+
+            Usci::enableModule();
+        }
+
+        void sendByte(std::uint8_t byte)
+        {
+            while (!Usci::isTxInterruptPending());
+            Usci::tx_buf = byte;
+        }
+
+        std::uint8_t readByte()
+        {
+            while (!Usci::isRxInterruptPending());
+            return *Usci::rx_buf;
+        }
+
+        void enable()
+        {
+            Usci::enableModule();
+        }
+
+        void disable()
+        {
+            Usci::disableModule();
+        }
+    };
 
     template<typename data_type,
             volatile std::uint8_t* port_sel_0,
