@@ -9,56 +9,56 @@
 
 namespace msp430hal::timer
 {
-    enum TimerClockSource : std::uint8_t
+    enum TimerClockSource : std::uint16_t
     {
-        taclk = 0b00,
-        aclk = 0b01,
-        smclk = 0b10,
-        inclk = 0b11
+        taclk = TASSEL_0,
+        aclk = TASSEL_1,
+        smclk = TASSEL_2,
+        inclk = TASSEL_3
     };
 
-    enum TimerClockInputDivider : std::uint8_t
+    enum TimerClockInputDivider : std::uint16_t
     {
-        times_1 = 0b00,
-        times_2 = 0b01,
-        times_4 = 0b10,
-        times_8 = 0b11
+        times_1 = ID_0,
+        times_2 = ID_1,
+        times_4 = ID_2,
+        times_8 = ID_3
     };
 
-    enum TimerMode : std::uint8_t
+    enum TimerMode : std::uint16_t
     {
-        stop = 0b00,
-        up = 0b01,
-        continuous = 0b10,
-        up_down = 0b11
+        stop = MC_0,
+        up = MC_1,
+        continuous = MC_2,
+        up_down = MC_3
     };
 
-    enum TimerCaptureMode : std::uint8_t
+    enum TimerCaptureMode : std::uint16_t
     {
-        none = 0b00,
-        rising_edge = 0b01,
-        falling_edge = 0b10,
-        edge = 0b11
+        none = CM_0,
+        rising_edge = CM_1,
+        falling_edge = CM_2,
+        edge = CM_3
     };
 
-    enum CaptureCompareInputSelect : std::uint8_t
+    enum CaptureCompareInputSelect : std::uint16_t
     {
-        ccixa = 0b00,
-        ccixb = 0b01,
-        gnd = 0b10,
-        vcc = 0b11
+        ccixa = CCIS_0,
+        ccixb = CCIS_1,
+        gnd = CCIS_2,
+        vcc = CCIS_3
     };
 
-    enum TimerOutputMode : std::uint8_t
+    enum TimerOutputMode : std::uint16_t
     {
-        output = 0b000,
-        set = 0b001,
-        toggle_reset = 0b010,
-        set_reset = 0b011,
-        toggle = 0b100,
-        reset = 0b101,
-        toggle_set = 0b110,
-        reset_set = 0b111
+        output = OUTMOD_0,
+        set = OUTMOD_1,
+        toggle_reset = OUTMOD_2,
+        set_reset = OUTMOD_3,
+        toggle = OUTMOD_4,
+        reset = OUTMOD_5,
+        toggle_set = OUTMOD_6,
+        reset_set = OUTMOD_7
     };
 
     enum class TimerModule
@@ -161,43 +161,50 @@ namespace msp430hal::timer
 
         static void setMode(TimerMode mode)
         {
-            *ctl = (mode << 4) | (*ctl & 0xffcf);
+            *ctl &= 0xffcf;
+            *ctl |= mode;
         }
 
         static void setInputDivider(TimerClockInputDivider divider)
         {
-            *ctl = (divider << 6) | (*ctl & 0xff3f);
+            *ctl &= 0xff3f;
+            *ctl |= divider;
         }
 
         static void selectClockSource(TimerClockSource clock_source)
         {
-            *ctl = (clock_source << 8) | (*ctl & 0xfcff);
+            *ctl &= 0xfcff;
+            *ctl |= clock_source;
         }
 
         static void init(TimerMode mode, TimerClockSource clock_source, TimerClockInputDivider divider)
         {
-            *ctl = (mode << 4) | (divider << 6) | (clock_source << 8) | (*ctl & 0xfc07);
+            *ctl &= 0xfc07;
+            *ctl = mode + divider + clock_source;
         }
 
         template<std::uint8_t capture_unit>
         static void setCaptureMode(TimerCaptureMode mode)
         {
             using cctl = capture_control_registers<module, true>;
-            *cctl::data[capture_unit][0] = (mode << 14) | (*cctl::data[capture_unit][0] & 0x3fff);
+            *cctl::data[capture_unit][0] &= 0x3fff;
+            *cctl::data[capture_unit][0] |= mode;
         }
 
         template<std::uint8_t capture_unit>
         static void selectCaptureCompareInput(CaptureCompareInputSelect input)
         {
             using cctl = capture_control_registers<module, true>;
-            *cctl::data[capture_unit][0] = (input << 12) | (*cctl::data[capture_unit][0] & 0xcfff);
+            *cctl::data[capture_unit][0] &= 0xcfff;
+            *cctl::data[capture_unit][0] |= input;
         }
 
         template<std::uint8_t capture_unit>
         static void setOutputMode(TimerOutputMode mode)
         {
             using cctl = capture_control_registers<module, true>;
-            *cctl::data[capture_unit][0] = (mode << 5) | (*cctl::data[capture_unit][0] & 0xff1f);
+            *cctl::data[capture_unit][0] &= 0xff1f;
+            *cctl::data[capture_unit][0] |= mode;
         }
     };
 }
