@@ -78,6 +78,7 @@ namespace msp430hal::gpio
         static constexpr volatile std::uint8_t* sel2 = getGPIORegister<port>(7);
         static constexpr volatile std::uint8_t* ren = getGPIORegister<port>(8);
 
+    public:
         static inline void init()
         {
             if constexpr (mode == Mode::input)
