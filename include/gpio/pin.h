@@ -31,8 +31,30 @@ namespace msp430hal::gpio
 
     enum class Mode
     {
-        input,
-        output
+        output,
+        input
+    };
+
+    enum class PinResistors
+    {
+        internal_pullup,
+        internal_pulldown,
+        external_pullup,
+        external_pulldown
+    };
+
+    enum class InterruptEdge
+    {
+        rising,
+        falling
+    };
+
+    enum class PinFunction
+    {
+        io,
+        primary_peripheral,
+        device_specific,
+        secondary_peripheral
     };
 
     namespace
@@ -65,8 +87,8 @@ namespace msp430hal::gpio
     }
 
 
-    template<Port port, Pin pin, Mode mode>
-    class GPIOPin
+    template<Port port, uint8_t pins, Mode mode = Mode::output, PinResistors resistor = PinResistors::internal_pullup>
+    class GPIOPins
     {
         static constexpr volatile std::uint8_t* in = getGPIORegister<port>(0);
         static constexpr volatile std::uint8_t* out = getGPIORegister<port>(1);
@@ -81,29 +103,120 @@ namespace msp430hal::gpio
     public:
         static inline void init()
         {
-            if constexpr (mode == Mode::input)
-            {
 
-            }
+            if constexpr (mode == Mode::output)
+                *dir |= pins;
             else
             {
-                *dir |= pin;
+                *dir &= ~pins;
+                if constexpr (resistor == PinResistors::internal_pullup || resistor == PinResistors::internal_pulldown)
+                {
+                    if constexpr (resistor == PinResistors::internal_pullup)
+                        *out |= pins;
+                    else
+                        *out &= ~pins;
+                    *ren |= pins;
+                }
+                else
+                {
+                    if constexpr (resistor == PinResistors::external_pullup)
+                        *out |= pins;
+                    else
+                        *out &= ~pins;
+                    *ren &= ~pins;
+                }
             }
+        }
+
+        static inline void init(PinFunction function)
+        {
+            switch (function)
+            {
+                case PinFunction::io:
+                    *sel &= ~pins;
+                    *sel2 &= ~pins;
+                    init();
+                    break;
+
+                case PinFunction::primary_peripheral:
+                    *sel |= pins;
+                    *sel2 &= ~pins;
+                    break;
+
+                case PinFunction::device_specific:
+                    *sel &= ~pins;
+                    *sel2 |= pins;
+                    break;
+
+                case PinFunction::secondary_peripheral:
+                    *sel |= pins;
+                    *sel2 |= pins;
+                    break;
+            }
+        }
+
+        static inline std::uint8_t inputLevel()
+        {
+            return *in & pins;
+        }
+
+        static bool input()
+        {
+            if ((*out & pins) > 0)
+                return (*in & pins) == 0;
+            else
+                return (*in & pins) > 0;
         }
 
         static inline void toggle()
         {
-            *out ^= pin;
+            *out ^= pins;
         }
 
         static inline void set()
         {
-            *out |= pin;
+            *out |= pins;
         }
 
         static inline void clear()
         {
-            *out &= ~pin;
+            *out &= ~pins;
+        }
+
+        static inline void enableInterrupt()
+        {
+            if constexpr (port == Port::port_1 || port == Port::port_2)
+            {
+                *ie |= pins;
+            }
+        }
+
+        static inline void disableInterrupt()
+        {
+            if constexpr (port == Port::port_1 || port == Port::port_2)
+            {
+                *ie &= ~pins;
+            }
+        }
+
+        static inline void setInterruptEdge(InterruptEdge edge)
+        {
+            if constexpr (port == Port::port_1 || port == Port::port_2)
+            {
+                if (edge == InterruptEdge::rising)
+                    *ies &= ~pins;
+                else
+                    *ies |= pins;
+            }
+        }
+
+        static inline std::uint8_t interruptFlag()
+        {
+            if constexpr (port == Port::port_1 || port == Port::port_2)
+            {
+                return *ifg & pins;
+            }
+            return 0;
         }
     };
 }
