@@ -116,8 +116,8 @@ namespace msp430hal
             }
 #else
 
-            template<const TimerModule timer_module, const std::uint8_t instance>
-            constexpr volatile unsigned int* getTimerRegister(std::uint8_t reg_no)
+            template<const TimerModule timer_module, const std::uint_fast8_t instance>
+            constexpr volatile unsigned int* getTimerRegister(std::uint_fast8_t reg_no)
             {
                 return (timer_module == TimerModule::timer_a) ? timer_a_registers[instance][reg_no] : timer_b_registers[instance][reg_no];
             }
@@ -225,25 +225,37 @@ namespace msp430hal
                 *ctl = mode + divider + clock_source;
             }
 
-            template<std::uint8_t capture_unit>
+            template<std::uint_fast8_t capture_unit>
             static void setCaptureMode(TimerCaptureMode mode)
             {
                 *capture_control_registers::data[capture_unit][0] &= 0x3fff;
                 *capture_control_registers::data[capture_unit][0] |= mode;
             }
 
-            template<std::uint8_t capture_unit>
+            template<std::uint_fast8_t capture_unit>
             static void selectCaptureCompareInput(CaptureCompareInputSelect input)
             {
                 *capture_control_registers::data[capture_unit][0] &= 0xcfff;
                 *capture_control_registers::data[capture_unit][0] |= input;
             }
 
-            template<std::uint8_t capture_unit>
+            template<std::uint_fast8_t capture_unit>
             static void setOutputMode(TimerOutputMode mode)
             {
                 *capture_control_registers::data[capture_unit][0] &= 0xff1f;
                 *capture_control_registers::data[capture_unit][0] |= mode;
+            }
+
+            template<std::uint_fast8_t capture_unit>
+            static void setCompareValue(std::uint16_t compare)
+            {
+                *capture_control_registers::data[capture_unit][1] = compare;
+            }
+
+            template<std::uint_fast8_t capture_unit>
+            static std::uint16_t getCaptureValue()
+            {
+                return *capture_control_registers::data[capture_unit][1];
             }
         };
     }
