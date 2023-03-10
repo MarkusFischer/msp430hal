@@ -240,6 +240,30 @@ namespace msp430hal
             }
 
             template<std::uint_fast8_t capture_unit>
+            static void synchronousCapture()
+            {
+                *capture_control_registers::data[capture_unit][0] |= 0x0800;
+            }
+
+            template<std::uint_fast8_t capture_unit>
+            static void asynchronousCapture()
+            {
+                *capture_control_registers::data[capture_unit][0] &= 0xf7ff;
+            }
+
+            template<std::uint_fast8_t capture_unit>
+            static void compareMode()
+            {
+                *capture_control_registers::data[capture_unit][0] |= 0xfeff;
+            }
+
+            template<std::uint_fast8_t capture_unit>
+            static void captureMode()
+            {
+                *capture_control_registers::data[capture_unit][0] |= 0x0100;
+            }
+
+            template<std::uint_fast8_t capture_unit>
             static void setOutputMode(TimerOutputMode mode)
             {
                 *capture_control_registers::data[capture_unit][0] &= 0xff1f;
@@ -257,6 +281,49 @@ namespace msp430hal
             {
                 return *capture_control_registers::data[capture_unit][1];
             }
+
+            template<std::uint_fast8_t capture_unit>
+            static void enableCaptureCompareInterrupt()
+            {
+                *capture_control_registers::data[capture_unit][0] |= 0x0010;
+            }
+
+            template<std::uint_fast8_t capture_unit>
+            static void disableCaptureCompareInterrupt()
+            {
+                *capture_control_registers::data[capture_unit][0] &= 0xffef;
+            }
+
+            template<std::uint_fast8_t capture_unit>
+            static bool isCaptureCompareInterruptPending()
+            {
+                *capture_control_registers::data[capture_unit][0] & 0x0001;
+            }
+
+            template<std::uint_fast8_t capture_unit>
+            static void setOutput()
+            {
+                *capture_control_registers::data[capture_unit][0] |= 0x0004;
+            }
+
+            template<std::uint_fast8_t capture_unit>
+            static void clearOutput()
+            {
+                *capture_control_registers::data[capture_unit][0] &= 0xfffb;
+            }
+
+            template<std::uint_fast8_t capture_unit>
+            static bool overflowOccurred()
+            {
+                *capture_control_registers::data[capture_unit][0] & 0x0002;
+            }
+
+            template<std::uint_fast8_t capture_unit>
+            static void clearOverflowFlag()
+            {
+                *capture_control_registers::data[capture_unit][0] &= 0xfffd;
+            }
+
         };
     }
 }
