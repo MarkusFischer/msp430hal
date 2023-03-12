@@ -19,60 +19,60 @@ namespace msp430hal
             times_64 = 0b11
         };
 
-        void stopWatchdog()
+        inline void stopWatchdog()
         {
             WDTCTL = WDTPW | ((WDTCTL & 0xff) | WDTHOLD);
         }
 
-        void startWatchdog()
+        inline void startWatchdog()
         {
             WDTCTL = WDTPW | ((WDTCTL & ~WDTHOLD) & 0xff);
         }
 
-        void setWatchdogNMIEdgeRising()
+        inline void setWatchdogNMIEdgeRising()
         {
             WDTCTL = WDTPW | (WDTCTL & 0xbf);
         }
 
-        void setWatchdogNMIEdgeFalling()
+        inline void setWatchdogNMIEdgeFalling()
         {
             WDTCTL = WDTPW | (WDTCTL & 0xff) | WDTNMIES;
         }
 
-        void setWatchdogNMIPinReset()
+        inline void setWatchdogNMIPinReset()
         {
             WDTCTL = WDTPW | (WDTCTL & 0xdf);
         }
 
-        void setWatchdogNMIPinNMI()
+        inline void setWatchdogNMIPinNMI()
         {
             WDTCTL = WDTPW | (WDTCTL & 0xff) | WDTNMI;
         }
 
-        void setWatchdogModeWatchdog()
+        inline void setWatchdogModeWatchdog()
         {
             WDTCTL = WDTPW | (WDTCTL & 0xef);
         }
 
-        void setWatchdogModeInterval()
+        inline void setWatchdogModeInterval()
         {
             WDTCTL = WDTPW | (WDTCTL & 0xff) | WDTTMSEL;
         }
 
-        void calmWatchdog()
+        inline void calmWatchdog()
         {
             WDTCTL = WDTPW | ((WDTCTL & 0xff) | WDTCNTCL);
         }
 
 #ifndef MSP430HAL_NO_EASTER_EGGS
         // Easter egg:
-        void throwBone()
+        inline void throwBone()
         {
             calmWatchdog();
         }
 #endif
 
-        void selectWatchdogClock(cpu::Clock clock)
+        inline void selectWatchdogClock(cpu::Clock clock)
         {
             if (clock == cpu::Clock::smclk)
                 WDTCTL = WDTPW | ((WDTCTL & ~WDTSSEL) & 0xff);
@@ -80,7 +80,7 @@ namespace msp430hal
                 WDTCTL = WDTPW | ((WDTCTL & 0xff) | WDTSSEL);
         }
 
-        void selectWatchdogDivider(WatchdogDivider divider)
+        inline void selectWatchdogDivider(WatchdogDivider divider)
         {
             WDTCTL = WDTPW | ((WDTCTL & 0xfc) | divider);
         }

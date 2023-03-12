@@ -55,11 +55,11 @@ namespace msp430hal
         };
 
         template<const Clock clock>
-        void selectClockSource(ClockSource source)
+        inline void selectClockSource(ClockSource source)
         {}
 
         template<>
-        void selectClockSource<Clock::mclk>(ClockSource source)
+        inline void selectClockSource<Clock::mclk>(ClockSource source)
         {
             if (source == ClockSource::dcoclk)
                 BCSCTL2 &= 0x3f;
@@ -76,7 +76,7 @@ namespace msp430hal
         }
 
         template<>
-        void selectClockSource<Clock::smclk>(ClockSource source)
+        inline void selectClockSource<Clock::smclk>(ClockSource source)
         {
             if (source == ClockSource::dcoclk)
                 BCSCTL2 &= 0xf7;
@@ -84,68 +84,68 @@ namespace msp430hal
                 BCSCTL2 |= 0x08;
         }
 
-        void turnXT2Off()
+        inline void turnXT2Off()
         {
             BCSCTL1 |= 0x80;
         }
 
-        void turnXT2On()
+        inline void turnXT2On()
         {
             BCSCTL1 &= 0x7f;
         }
 
         template<const ClockSource source>
-        void setFrequencyRange(HighFrequencyRange range)
+        inline void setFrequencyRange(HighFrequencyRange range)
         {}
 
         template<>
-        void setFrequencyRange<ClockSource::xt2clk>(HighFrequencyRange range)
+        inline void setFrequencyRange<ClockSource::xt2clk>(HighFrequencyRange range)
         {
             BCSCTL3 &= 0x3f;
             BCSCTL3 |= range << 6;
         }
 
         template<>
-        void setFrequencyRange<ClockSource::xt1clk>(HighFrequencyRange range)
+        inline void setFrequencyRange<ClockSource::xt1clk>(HighFrequencyRange range)
         {
             BCSCTL1 |= 0x40;
             BCSCTL3 &= 0xcf;
             BCSCTL3 |= range << 4;
         }
 
-        void setLowFrequencySource(LowFrequencySource source)
+        inline void setLowFrequencySource(LowFrequencySource source)
         {
             BCSCTL1 &= 0xbf;
             BCSCTL3 &= 0xcf;
             BCSCTL3 |= source;
         }
 
-        void selectOscillatorCapacitor(OscillatorCapacitor capacitor)
+        inline void selectOscillatorCapacitor(OscillatorCapacitor capacitor)
         {
             BCSCTL3 &= 0xf3;
             BCSCTL3 |= capacitor;
         }
 
         template<const Clock clock>
-        void setInputDivider(Divider divider)
+        inline void setInputDivider(Divider divider)
         {}
 
         template<>
-        void setInputDivider<Clock::mclk>(Divider divider)
+        inline void setInputDivider<Clock::mclk>(Divider divider)
         {
             BCSCTL2 &= 0xcf;
             BCSCTL2 |= divider << 4;
         }
 
         template<>
-        void setInputDivider<Clock::smclk>(Divider divider)
+        inline void setInputDivider<Clock::smclk>(Divider divider)
         {
             BCSCTL2 &= 0xf9;
             BCSCTL2 |= divider << 1;
         }
 
         template<>
-        void setInputDivider<Clock::aclk>(Divider divider)
+        inline void setInputDivider<Clock::aclk>(Divider divider)
         {
             BCSCTL1 &= 0xcf;
             BCSCTL1 |= divider << 4;
@@ -161,11 +161,11 @@ namespace msp430hal
         };
 
         template<CalibratedDCOFrequency frequency>
-        void setCalibratedFrequency()
+        inline void setCalibratedFrequency()
         {}
 
         template<>
-        void setCalibratedFrequency<calibrated_1MHz>()
+        inline void setCalibratedFrequency<calibrated_1MHz>()
         {
             DCOCTL = 0;
             BCSCTL1 = CALBC1_1MHZ;
@@ -173,7 +173,7 @@ namespace msp430hal
         }
 
         template<>
-        void setCalibratedFrequency<calibrated_8MHz>()
+        inline void setCalibratedFrequency<calibrated_8MHz>()
         {
             DCOCTL = 0;
             BCSCTL1 = CALBC1_8MHZ;
@@ -181,7 +181,7 @@ namespace msp430hal
         }
 
         template<>
-        void setCalibratedFrequency<calibrated_12MHz>()
+        inline void setCalibratedFrequency<calibrated_12MHz>()
         {
             DCOCTL = 0;
             BCSCTL1 = CALBC1_12MHZ;
@@ -189,7 +189,7 @@ namespace msp430hal
         }
 
         template<>
-        void setCalibratedFrequency<calibrated_16MHz>()
+        inline void setCalibratedFrequency<calibrated_16MHz>()
         {
             DCOCTL = 0;
             BCSCTL1 = CALBC1_16MHZ;
