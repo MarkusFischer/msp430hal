@@ -62,7 +62,7 @@ namespace msp430hal
 
         namespace
         {
-            static constexpr volatile uint8_t* gpio_registers[][9] = {
+            static constexpr volatile std::uint8_t* gpio_registers[][9] = {
                     {&P1IN, &P1OUT, &P1DIR, &P1IFG, &P1IES, &P1IE, &P1SEL, &P1SEL2, &P1REN},
 #ifdef __MSP430_HAS_PORT2_R__
                     {&P2IN, &P2OUT, &P2DIR, &P2IFG, &P2IES, &P2IE, &P2SEL, &P2SEL2, &P2REN},
@@ -76,7 +76,7 @@ namespace msp430hal
             };
 
             template<Port port>
-            constexpr volatile uint8_t* getGPIORegister(int reg_no)
+            constexpr volatile std::uint8_t* getGPIORegister(int reg_no)
             {
                 return gpio_registers[port][reg_no];
             }
@@ -84,8 +84,8 @@ namespace msp430hal
 
 
         //TODO: GPIO Pin group over multiple ports
-        template<Port port, uint8_t pins, Mode mode = Mode::output, PinResistors resistor = PinResistors::internal_pullup>
-        class GPIOPins
+        template<Port port, std::uint8_t pins, Mode mode = Mode::output, PinResistors resistor = PinResistors::internal_pullup>
+        struct GPIOPins
         {
             static constexpr volatile std::uint8_t* in = getGPIORegister<port>(0);
             static constexpr volatile std::uint8_t* out = getGPIORegister<port>(1);
@@ -97,7 +97,11 @@ namespace msp430hal
             static constexpr volatile std::uint8_t* sel2 = getGPIORegister<port>(7);
             static constexpr volatile std::uint8_t* ren = getGPIORegister<port>(8);
 
-        public:
+            static const Port port_value = port;
+            static const std::uint8_t pins_value = pins;
+            static const Mode mode_value = mode;
+            static const PinResistors resistor_value = resistor;
+
             static inline void init()
             {
                 // if constexpr would be nice; However, the initialization is usually called only once, hence we could rely on compiler optimization because the worst case has no big impact
