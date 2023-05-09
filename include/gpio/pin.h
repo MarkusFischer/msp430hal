@@ -83,6 +83,7 @@ namespace msp430hal
         }
 
 
+        //TODO: GPIO Pin group over multiple ports
         template<Port port, uint8_t pins, Mode mode = Mode::output, PinResistors resistor = PinResistors::internal_pullup>
         class GPIOPins
         {
