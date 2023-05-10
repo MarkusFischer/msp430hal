@@ -26,17 +26,17 @@ namespace msp430hal
         namespace
         {
 
-            static constexpr volatile uint8_t* usci_a_reg[][7] = {
-                    {&UCA0CTL0, &UCA0CTL1, &UCA0BR0, &UCA0BR1, &UCA0STAT, &UCA0RXBUF, &UCA0TXBUF},
+            static constexpr volatile uint8_t* usci_a_reg[][9] = {
+                    {&UCA0CTL0, &UCA0CTL1, &UCA0BR0, &UCA0BR1, &UCA0MCTL, &UCA0STAT, &UCA0RXBUF, &UCA0TXBUF, &UCA0ABCTL},
 #ifdef __MSP430_HAS_USCI_AB1__
-                    {&UCA1CTL0, &UCA1CTL1, &UCA1BR0, &UCA1BR1, &UCA1STAT, &UCA1RXBUF, &UCA1TXBUF},
+                    {&UCA1CTL0, &UCA1CTL1, &UCA1BR0, &UCA1BR1, &UCA1MCTL, &UCA1STAT, &UCA1RXBUF, &UCA1TXBUF, &UCA1ABCTL},
 #endif
             };
 
-            static constexpr volatile uint8_t* usci_b_reg[][7] = {
-                    {&UCB0CTL0, &UCB0CTL1, &UCB0BR0, &UCB0BR1, &UCB0STAT, &UCB0RXBUF, &UCB0TXBUF},
+            static constexpr volatile uint8_t* usci_b_reg[][9] = {
+                    {&UCB0CTL0, &UCB0CTL1, &UCB0BR0, &UCB0BR1, nullptr, &UCB0STAT, &UCB0RXBUF, &UCB0TXBUF, nullptr},
 #ifdef __MSP430_HAS_USCI_AB1__
-                    {&UCB1CTL0, &UCB1CTL1, &UCB1BR0, &UCB1BR1, &UCB1STAT, &UCB1RXBUF, &UCB1TXBUF},
+                    {&UCB1CTL0, &UCB1CTL1, &UCB1BR0, &UCB1BR1, nullptr, &UCB1STAT, &UCB1RXBUF, &UCB1TXBUF, nullptr},
 #endif
             };
 
@@ -61,9 +61,11 @@ namespace msp430hal
             static constexpr volatile std::uint8_t* ctl_1 = getUsciRegister<usci_module, instance>(1);
             static constexpr volatile std::uint8_t* br_0 = getUsciRegister<usci_module, instance>(2);
             static constexpr volatile std::uint8_t* br_1 = getUsciRegister<usci_module, instance>(3);
-            static constexpr volatile std::uint8_t* stat = getUsciRegister<usci_module, instance>(4);
-            static constexpr volatile std::uint8_t* rx_buf = getUsciRegister<usci_module, instance>(5);
-            static constexpr volatile std::uint8_t* tx_buf = getUsciRegister<usci_module, instance>(6);
+            static constexpr volatile std::uint8_t* mctl = getUsciRegister<usci_module, instance>(4);
+            static constexpr volatile std::uint8_t* stat = getUsciRegister<usci_module, instance>(5);
+            static constexpr volatile std::uint8_t* rx_buf = getUsciRegister<usci_module, instance>(6);
+            static constexpr volatile std::uint8_t* tx_buf = getUsciRegister<usci_module, instance>(7);
+            static constexpr volatile std::uint8_t* ab_ctl = getUsciRegister<usci_module, instance>(8);
 
             static inline void enableModule()
             {
