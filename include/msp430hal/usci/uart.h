@@ -86,12 +86,85 @@ namespace msp430hal
                 *Usci::ctl_0 = (enable_parity_value << 7) | (even_parity_value << 6) | (msb_first_value << 5) |
                         (seven_bit_data_value << 4) | (two_stop_bits_value << 3) | mode_value | sync_mode_value;
                 *Usci::ctl_1 |= clock_source;
-                //TODO: in theory we could perform one single write to br_0 as 16 bit register
+                //in theory we could perform one single write to br_0 as 16 bit register
                 *Usci::br_0 = static_cast<std::uint8_t>(0x00ff & ucbr_value());
                 *Usci::br_1 = static_cast<std::uint8_t>((0xff00 & ucbr_value()) >> 8);
                 *Usci::mctl = modulation_control_value();
 
+            }
+
+            static void enableErroneousCharacterInterrupt()
+            {
+                *Usci::ctl_1 |= UCRXEIE;
+            }
+
+            static void enableBreakCharacterInterrupt()
+            {
+                *Usci::ctl_1 |= UCBRKIE;
+            }
+
+            static void disableErroneousCharacterInterrupt()
+            {
+                *Usci::ctl_1 &= ~UCRXEIE;
+            }
+
+            static void disableBreakCharacterInterrupt()
+            {
+                *Usci::ctl_1 &= ~UCBRKIE;
+            }
+
+            static bool readFramingError()
+            {
+                return *Usci::stat & UCFE;
+            }
+
+            static bool framingError()
+            {
+                bool error = *Usci::stat & UCFE;
+                *Usci::stat &= ~UCFE;
+                return error;
+            }
+
+            static bool readOverrunError()
+            {
+                return *Usci::stat & UCOE;
+            }
+
+            static bool overrunError()
+            {
+                return readOverrunError();
+            }
+
+            static bool readParityError()
+            {
+                return *Usci::stat & UCPE;
+            }
+
+            static bool parityError()
+            {
+                bool error = *Usci::stat & UCPE;
+                *Usci::stat &= ~UCPE;
+                return error;
+            }
+
+            static bool receiveError()
+            {
+                return *Usci::stat & UCRXERR;
+            }
+
+            static bool busy()
+            {
+                return *Usci::stat & UCBUSY;
+            }
+
+            static void enable()
+            {
                 Usci::enableModule();
+            }
+
+            static void disable()
+            {
+                Usci::disableModule();
             }
 
         };
