@@ -67,6 +67,8 @@ namespace msp430hal
             static constexpr volatile std::uint8_t* tx_buf = getUsciRegister<usci_module, instance>(7);
             static constexpr volatile std::uint8_t* ab_ctl = getUsciRegister<usci_module, instance>(8);
 
+            static const UsciModule usci_module_value = usci_module;
+
             static inline void enableModule()
             {
     #ifdef __GNUC__
@@ -101,7 +103,7 @@ namespace msp430hal
                         return (usci_module == UsciModule::usci_a) ? UCA0RXIE : UCB0RXIE;
                     }));
     #else
-                IE2 |= (usci_module == UsciModule::usci_a) ? UCA0RXIE : UCB0RXIE;
+                IE2 |= ((usci_module_value == UsciModule::usci_a) ? UCA0RXIE : UCB0RXIE);
     #endif
             }
 
@@ -116,7 +118,7 @@ namespace msp430hal
                     return (usci_module == UsciModule::usci_a) ? UCA1RXIE : UCB1RXIE;
                 }));
     #else
-                UC1IE |= (usci_module == UsciModule::usci_a) ? UCA1RXIE : UCB1RXIE;
+                UC1IE |= ((usci_module == UsciModule::usci_a) ? UCA1RXIE : UCB1RXIE);
     #endif
             }
     #endif
@@ -131,7 +133,8 @@ namespace msp430hal
                     return (usci_module == UsciModule::usci_a) ? UCA0TXIE : UCB0TXIE;
                 }));
     #else
-                IE2 |= (usci_module == UsciModule::usci_a) ? UCA0TXIE : UCB0TXIE;
+                constexpr std::uint8_t bit = (usci_module == UsciModule::usci_a) ? UCA0TXIE : UCB0TXIE;
+                IE2 |= bit;
     #endif
             }
 
@@ -146,7 +149,8 @@ namespace msp430hal
                     return (usci_module == UsciModule::usci_a) ? UCA1TXIE : UCB1TXIE;
                 }));
     #else
-                UC1IE |= (usci_module == UsciModule::usci_a) ? UCA1TXIE : UCB1TXIE;
+                constexpr std::uint8_t bit = (usci_module == UsciModule::usci_a) ? UCA1TXIE : UCB1TXIE;
+                UC1IE |= bit;
     #endif
             }
     #endif
@@ -161,7 +165,7 @@ namespace msp430hal
                     return (usci_module == UsciModule::usci_a) ? UCA0RXIE | UCA0TXIE : UCB0RXIE | UCB0TXIE;
                 }));
     #else
-                IE2 |= (usci_module == UsciModule::usci_a) ? UCA0RXIE | UCA0TXIE : UCB0RXIE | UCB0TXIE;
+                IE2 |= ((usci_module == UsciModule::usci_a) ? UCA0RXIE | UCA0TXIE : UCB0RXIE | UCB0TXIE);
     #endif
             }
 
@@ -176,7 +180,7 @@ namespace msp430hal
                     return (usci_module == UsciModule::usci_a) ? UCA1RXIE | UCA1TXIE : UCB1RXIE | UCB1TXIE;
                 }));
     #else
-                UC1IE |= (usci_module == UsciModule::usci_a) ? UCA1RXIE | UCA1TXIE : UCB1RXIE | UCB1TXIE;
+                UC1IE |= ((usci_module == UsciModule::usci_a) ? UCA1RXIE | UCA1TXIE : UCB1RXIE | UCB1TXIE);
     #endif
             }
     #endif
@@ -274,26 +278,26 @@ namespace msp430hal
             template<const int inst = instance>
             static bool isRxInterruptPending(typename std::enable_if<(instance == 0), void>::type* = nullptr)
             {
-                return IFG2 & ((usci_module == UsciModule::usci_a) ? UCA0RXIFG : UCB0RXIFG);
+                return IFG2 & ((usci_module_value == UsciModule::usci_a) ? UCA0RXIFG : UCB0RXIFG);
             }
     #ifdef __MSP430_HAS_USCI_AB1__
             template<const int inst = instance>
             static bool isRxInterruptPending(typename std::enable_if<(instance == 1), void>::type* = nullptr)
             {
-                return UC1IFG & (usci_module == UsciModule::usci_a) ? UCA1RXIFG : UCB1RXIFG;
+                return UC1IFG & ((usci_module_value == UsciModule::usci_a) ? UCA1RXIFG : UCB1RXIFG);
             }
     #endif
 
             template<const int inst = instance>
             static bool isTxInterruptPending(typename std::enable_if<(instance == 0), void>::type* = nullptr)
             {
-                return IFG2 & ((usci_module == UsciModule::usci_a) ? UCA0TXIFG : UCB0TXIFG);
+                return IFG2 & ((usci_module_value == UsciModule::usci_a) ? UCA0TXIFG : UCB0TXIFG);
             }
     #ifdef __MSP430_HAS_USCI_AB1__
             template<const int inst = instance>
             static bool isTxInterruptPending(typename std::enable_if<(instance == 1), void>::type* = nullptr)
             {
-                return UC1IFG & (usci_module == UsciModule::usci_a) ? UCA1TXIFG : UCB1TXIFG;
+                return UC1IFG & ((usci_module_value == UsciModule::usci_a) ? UCA1TXIFG : UCB1TXIFG);
             }
     #endif
         };
