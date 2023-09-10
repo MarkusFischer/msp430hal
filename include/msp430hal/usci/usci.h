@@ -94,11 +94,12 @@ namespace msp430hal
             static inline void enableRxInterrupt(typename std::enable_if<(inst == 0), void>::type* = nullptr)
             {
     #ifdef __GNUC__
-                __asm__ __volatile__ ( "BIS.B %[ucswrst], %[ucxctl1]"
+                /*__asm__ __volatile__ ( "BIS.B %[ucswrst], %[ucxctl1]"
                 : [ucxctl1] "=m"(IE2)
                 : [ucswrst] "i"([&] {
                         return (usci_module == UsciModule::usci_a) ? UCA0RXIE : UCB0RXIE;
-                    }));
+                    }));*/
+                IE2 |= ((usci_module_value == UsciModule::usci_a) ? UCA0RXIE : UCB0RXIE);
     #else
                 IE2 |= ((usci_module_value == UsciModule::usci_a) ? UCA0RXIE : UCB0RXIE);
     #endif
