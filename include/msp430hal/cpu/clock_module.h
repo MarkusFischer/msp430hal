@@ -1,9 +1,7 @@
-//
-// Created by markus on 3/9/23.
-//
-
 #ifndef MSP430HAL_CPU_CLOCK_MODULE_H
 #define MSP430HAL_CPU_CLOCK_MODULE_H
+
+#include <msp430.h>
 
 namespace msp430hal
 {

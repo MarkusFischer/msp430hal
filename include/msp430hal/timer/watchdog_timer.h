@@ -1,10 +1,7 @@
-//
-// Created by markus on 3/10/23.
-//
-
 #ifndef MSP430HAL_TIMER_WATCHDOG_TIMER_H
 #define MSP430HAL_TIMER_WATCHDOG_TIMER_H
 
+#include <msp430.h>
 #include "../cpu/clock_module.h"
 
 namespace msp430hal

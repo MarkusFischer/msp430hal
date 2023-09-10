@@ -1,9 +1,7 @@
-//
-// Created by markus on 12/15/22.
-//
 #ifndef MSP430HAL_TIMER_HWTIMER_H
 #define MSP430HAL_TIMER_HWTIMER_H
 
+#include <msp430.h>
 #include <cstdint>
 #include <type_traits>
 

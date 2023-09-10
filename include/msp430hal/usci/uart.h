@@ -1,6 +1,7 @@
 #ifndef MSP430HAL_USCI_UART_H
 #define MSP430HAL_USCI_UART_H
 
+#include <msp430.h>
 #include "usci.h"
 #include "../util/math.h"
 

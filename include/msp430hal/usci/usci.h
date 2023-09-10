@@ -1,10 +1,7 @@
-//
-// Created by markus on 12/13/22.
-//
-
 #ifndef MSP430HAL_USCI_USCI_H
 #define MSP430HAL_USCI_USCI_H
 
+#include <msp430.h>
 #include <cstdint>
 #include <type_traits>
 

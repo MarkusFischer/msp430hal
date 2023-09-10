@@ -1,6 +1,3 @@
-//
-// Created by markus on 12/11/22.
-//
 #ifndef MSP430HAL_USCI_SPINTERFACE_H
 #define MSP430HAL_USCI_SPINTERFACE_H
 

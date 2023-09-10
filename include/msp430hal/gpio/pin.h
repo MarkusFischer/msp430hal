@@ -1,9 +1,7 @@
-//
-// Created by markus on 2/7/23.
-//
 #ifndef MSP430HAL_GPIO_PIN_H
 #define MSP430HAL_GPIO_PIN_H
 
+#include <msp430.h>
 #include <cstdint>
 #include <type_traits>
 

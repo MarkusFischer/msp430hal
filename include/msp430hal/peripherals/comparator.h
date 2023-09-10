@@ -1,6 +1,8 @@
 #ifndef MSP430HAL_PERIPHERALS_COMPERATOR_H
 #define MSP430HAL_PERIPHERALS_COMPERATOR_H
 
+#include <msp430.h>
+
 namespace msp430hal
 {
     namespace peripherals
