@@ -20,7 +20,7 @@ namespace msp430hal
             }
 
             void operator=(InterruptGuard& other) = delete;
-        }
+        };
     }
 }
 
