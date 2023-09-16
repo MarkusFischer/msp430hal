@@ -131,8 +131,7 @@ namespace msp430hal
                     return (usci_module == UsciModule::usci_a) ? UCA0TXIE : UCB0TXIE;
                 }));
     #else
-                constexpr std::uint8_t bit = (usci_module == UsciModule::usci_a) ? UCA0TXIE : UCB0TXIE;
-                IE2 |= bit;
+                IE2 |= ((usci_module_value == UsciModule::usci_a) ? UCA0TXIE : UCB0TXIE);
     #endif
             }
 
@@ -163,7 +162,7 @@ namespace msp430hal
                     return (usci_module == UsciModule::usci_a) ? UCA0RXIE | UCA0TXIE : UCB0RXIE | UCB0TXIE;
                 }));
     #else
-                IE2 |= ((usci_module == UsciModule::usci_a) ? UCA0RXIE | UCA0TXIE : UCB0RXIE | UCB0TXIE);
+                IE2 |= ((usci_module_value == UsciModule::usci_a) ? UCA0RXIE | UCA0TXIE : UCB0RXIE | UCB0TXIE);
     #endif
             }
 
