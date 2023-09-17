@@ -94,12 +94,46 @@ namespace msp430hal
 
         inline bool writeByte(std::uint16_t address, std::uint8_t byte, bool watchdog_active = false)
         {
-            return write<std::uint8_t>(address, byte, watchdog_active);
+            if (watchdog_active)
+                timer::stopWatchdog();
+
+            FCTL1 = flash_password | (FCTL1 & 0x0018) | WRT;
+            FCTL3 = flash_password;
+
+            *reinterpret_cast<std::uint8_t*>(address) = byte;
+
+            bool error = FCTL3 & (ACCVIFG | FAIL);
+            FCTL3 = flash_password | LOCK;
+            FCTL1 = flash_password | (FCTL1 & 0x0018);
+
+            if (watchdog_active)
+                timer::startWatchdog();
+
+            if (error)
+                return false;
+            return true;
         }
 
         inline bool writeWord(std::uint16_t address, std::uint16_t word, bool watchdog_active = false)
         {
-            return write<std::uint16_t>(address, word, watchdog_active);
+            if (watchdog_active)
+                timer::stopWatchdog();
+
+            FCTL1 = flash_password | (FCTL1 & 0x0018) | WRT;
+            FCTL3 = flash_password;
+
+            *reinterpret_cast<std::uint16_t*>(address) = word;
+
+            bool error = FCTL3 & (ACCVIFG | FAIL);
+            FCTL3 = flash_password | LOCK;
+            FCTL1 = flash_password | (FCTL1 & 0x0018);
+
+            if (watchdog_active)
+                timer::startWatchdog();
+
+            if (error)
+                return false;
+            return true;
         }
 
 
