@@ -129,12 +129,12 @@ namespace msp430hal
 
             static inline void init(PinFunction function)
             {
+                init();
                 switch (function)
                 {
                     case PinFunction::io:
                         *sel &= ~pins;
                         *sel2 &= ~pins;
-                        init();
                         break;
 
                     case PinFunction::primary_peripheral:
