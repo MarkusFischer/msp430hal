@@ -31,44 +31,45 @@ namespace msp430hal
 
             void setInvertingInput(ComparatorInput input)
             {
-                //Prevent that the same input will be applied and make sure, the input lies on different multiplexers
-                if (m_non_inverting_input != no_connection && (m_non_inverting_input == input ||
-                    (m_non_inverting_input >= ComparatorInput::vcc_025 && input >= ComparatorInput::vcc_025) ||
-                    (m_non_inverting_input >= ComparatorInput::ca_3 && m_non_inverting_input <= ComparatorInput::ca_7
-                     && input >= ComparatorInput::ca_3 && input <= ComparatorInput::ca_7))) //TODO: exceptions?
-                    return;
-
                 switch(input)
                 {
                     case ComparatorInput::ca_0:
                         CACTL1 |= CAEX;
+                        CACTL2 &= 0xbb;
+                        CACTL2 |= 0x04;
+                        //Make sure non-inverting input gets signal from second multiplexer
                         if (m_non_inverting_input == ComparatorInput::ca_1)
                         {
-                            CACTL2 &= 0x83;
+                            CACTL2 &= 0xc7;
                             CACTL2 |= 0x08;
                         }
                         else if (m_non_inverting_input == ComparatorInput::ca_2)
                         {
-                            CACTL2 &= 0x83;
+                            CACTL2 &= 0xc7;
                             CACTL2 |= 0x10;
                         }
-                        else
-                            CACTL2 &= 0xbb;
+                        else if (m_non_inverting_input == ComparatorInput::ca_0)
+                        {
+                            CACTL2 &= 0xc7;
+                            m_non_inverting_input = ComparatorInput::no_connection;
+                        }
                         break;
                     case ComparatorInput::ca_1:
                     case ComparatorInput::ca_2:
-                        if (m_non_inverting_input == ComparatorInput::ca_0 || !(CACTL1 & CAEX))
+                        if (CACTL1 & CAEX)
                         {
-                            CACTL2 &= 0xc7;
-                            CACTL2 |= input << 3;
-                        }
-                        else if (m_non_inverting_input >= ComparatorInput::ca_3 || CACTL1 & CAEX)
-                        {
+                            //CAEX set -> inverting input behind first multiplexer
                             CACTL2 &= 0xbb;
                             if (input == ComparatorInput::ca_1)
                                 CACTL2 |= 0x40;
                             else
                                 CACTL2 |= 0x44;
+                        }
+                        else
+                        {
+                            //CAEX not set -> inverting input behind second multiplexer
+                            CACTL2 &= 0xc7;
+                            CACTL2 |= input << 3;
                         }
                         break;
                     case ComparatorInput::ca_3:
@@ -77,31 +78,47 @@ namespace msp430hal
                     case ComparatorInput::ca_6:
                     case ComparatorInput::ca_7:
                         CACTL1 &= ~CAEX;
+                        //TODO take care if reference voltage is applied to other input
+                        CACTL2 &= 0xc7;
+                        CACTL2 |= input << 3;
+                        //Make sure non-inverting input gets input from first multiplexer
                         if (m_non_inverting_input == ComparatorInput::ca_1)
                         {
-                            CACTL2 &= 0x83;
-                            CACTL2 |= 0x40 | (input << 3);
+                            CACTL2 &= 0xbb;
+                            CACTL2 |= 0x40;
                         }
                         else if (m_non_inverting_input == ComparatorInput::ca_2)
                         {
-                            CACTL2 &= 0x83;
-                            CACTL2 |= 0x44 | (input << 3);
+                            CACTL2 &= 0xbb;
+                            CACTL2 |= 0x44;
                         }
-                        else
+                        else if (m_non_inverting_input >= ComparatorInput::ca_3 && m_inverting_input <= ComparatorInput::ca_7)
                         {
-                            CACTL2 &= 0xc7;
-                            CACTL2 |= input << 3;
+                            CACTL2 &= 0xbb;
+                            m_non_inverting_input = ComparatorInput::no_connection;
                         }
                         break;
                     case ComparatorInput::vcc_025:
+                        if (CACTL1 & CAEX)
+                            CACTL2 &= 0xbb;
+                        else
+                            CACTL2 &= 0xc7;
                         CACTL1 &= 0xcf;
                         CACTL1 |= (~(CACTL1 >> 1) & 0x40) | 0x10;
                         break;
                     case ComparatorInput::vcc_05:
+                        if (CACTL1 & CAEX)
+                            CACTL2 &= 0xbb;
+                        else
+                            CACTL2 &= 0xc7;
                         CACTL1 &= 0xcf;
                         CACTL1 |= (~(CACTL1 >> 1) & 0x40) | 0x20;
                         break;
                     case ComparatorInput::diode_reference:
+                        if (CACTL1 & CAEX)
+                            CACTL2 &= 0xbb;
+                        else
+                            CACTL2 &= 0xc7;
                         CACTL1 &= 0xcf;
                         CACTL1 |= (~(CACTL1 >> 1) & 0x40) | 0x30;
                         break;
@@ -112,7 +129,8 @@ namespace msp430hal
                             CACTL2 &= 0xc7;
                         break;
                 }
-                if ((m_inverting_input >= ComparatorInput::vcc_025 && m_inverting_input <= ComparatorInput::diode_reference) &&
+                //Disable internal reference if not needed
+                if (!(m_inverting_input >= ComparatorInput::vcc_025 && m_inverting_input <= ComparatorInput::diode_reference) &&
                     !(input >= ComparatorInput::vcc_025 && input <= ComparatorInput::diode_reference))
                     CACTL1 &= 0xcf;
                 m_inverting_input = input;
@@ -120,39 +138,41 @@ namespace msp430hal
 
             void setNonInvertingInput(ComparatorInput input)
             {
-                //Prevent that the same input will be applied and make sure, the input lies on different multiplexers
-                if (m_inverting_input != no_connection && (m_inverting_input == input ||
-                                                            (m_inverting_input >= ComparatorInput::vcc_025 && input >= ComparatorInput::vcc_025) ||
-                                                            (m_inverting_input >= ComparatorInput::ca_3 && m_inverting_input <= ComparatorInput::ca_7
-                                                                && input >= ComparatorInput::ca_3 && input <= ComparatorInput::ca_7))) //TODO: exceptions?
-                    return;
-
                 switch(input)
                 {
                     case ComparatorInput::ca_0:
                         CACTL1 &= ~CAEX;
+                        CACTL2 &= 0xbb;
+                        CACTL2 |= 0x04;
+                        //Make sure inverting input gets signal from second multiplexer
                         if (m_inverting_input == ComparatorInput::ca_1)
                         {
-                            CACTL2 &= 0x83;
+                            CACTL2 &= 0xc7;
                             CACTL2 |= 0x08;
                         }
                         else if (m_inverting_input == ComparatorInput::ca_2)
                         {
-                            CACTL2 &= 0x83;
+                            CACTL2 &= 0xc7;
                             CACTL2 |= 0x10;
                         }
-                        else
-                            CACTL2 &= 0xbb;
+                        else if (m_inverting_input == ComparatorInput::ca_0)
+                        {
+                            //Disable other input
+                            CACTL2 &= 0xc7;
+                            m_inverting_input = ComparatorInput::no_connection;
+                        }
                         break;
                     case ComparatorInput::ca_1:
                     case ComparatorInput::ca_2:
-                        if (m_inverting_input == ComparatorInput::ca_0 || (CACTL1 & CAEX))
+                        if (CACTL1 & CAEX)
                         {
+                            //CAEX set -> non-inverting input behind second multiplexer
                             CACTL2 &= 0xc7;
                             CACTL2 |= input << 3;
                         }
-                        else if (m_non_inverting_input >= ComparatorInput::ca_3 || !(CACTL1 & CAEX))
+                        else
                         {
+                            //CAEX not set -> non-inverting input behind first multiplexer
                             CACTL2 &= 0xbb;
                             if (input == ComparatorInput::ca_1)
                                 CACTL2 |= 0x40;
@@ -166,31 +186,46 @@ namespace msp430hal
                     case ComparatorInput::ca_6:
                     case ComparatorInput::ca_7:
                         CACTL1 |= CAEX;
+                        CACTL2 &= 0xc7;
+                        CACTL2 |= input << 3;
+                        //Make sure inverting input gets input from first multiplexer
                         if (m_inverting_input == ComparatorInput::ca_1)
                         {
-                            CACTL2 &= 0x83;
-                            CACTL2 |= 0x40 | (input << 3);
+                            CACTL2 &= 0xbb;
+                            CACTL2 |= 0x40;
                         }
                         else if (m_inverting_input == ComparatorInput::ca_2)
                         {
-                            CACTL2 &= 0x83;
-                            CACTL2 |= 0x44 | (input << 3);
+                            CACTL2 &= 0xbb;
+                            CACTL2 |= 0x44;
                         }
-                        else
+                        else if (m_inverting_input >= ComparatorInput::ca_3 && m_inverting_input <= ComparatorInput::ca_7)
                         {
-                            CACTL2 &= 0xc7;
-                            CACTL2 |= input << 3;
+                            CACTL2 &= 0xbb;
+                            m_inverting_input = no_connection;
                         }
                         break;
                     case ComparatorInput::vcc_025:
+                        if (CACTL2 & CAEX)
+                            CACTL2 &= 0xc7;
+                        else
+                            CACTL2 &= 0xbb;
                         CACTL1 &= 0xcf;
                         CACTL1 |= ((CACTL1 >> 1) & 0x40) | 0x10;
                         break;
                     case ComparatorInput::vcc_05:
+                        if (CACTL2 & CAEX)
+                            CACTL2 &= 0xc7;
+                        else
+                            CACTL2 &= 0xbb;
                         CACTL1 &= 0xcf;
                         CACTL1 |= ((CACTL1 >> 1) & 0x40) | 0x20;
                         break;
                     case ComparatorInput::diode_reference:
+                        if (CACTL2 & CAEX)
+                            CACTL2 &= 0xc7;
+                        else
+                            CACTL2 &= 0xbb;
                         CACTL1 &= 0xcf;
                         CACTL1 |= ((CACTL1 >> 1) & 0x40) | 0x30;
                         break;
@@ -201,7 +236,8 @@ namespace msp430hal
                             CACTL2 &= 0xbb;
                         break;
                 }
-                if ((m_non_inverting_input >= ComparatorInput::vcc_025 && m_non_inverting_input <= ComparatorInput::diode_reference) &&
+                //Disabl internal reference if not needed
+                if (!(m_non_inverting_input >= ComparatorInput::vcc_025 && m_non_inverting_input <= ComparatorInput::diode_reference) &&
                     !(input >= ComparatorInput::vcc_025 && input <= ComparatorInput::diode_reference))
                     CACTL1 &= 0xcf;
                 m_non_inverting_input = input;
@@ -225,6 +261,16 @@ namespace msp430hal
             void exchangeInputs()
             {
                 CACTL1 ^= CAEX;
+            }
+
+            void interruptOnRisingEdge()
+            {
+                CACTL1 &= ~CAIES;
+            }
+
+            void interruptOnFallingEdge()
+            {
+                CACTL1 |= CAIES;
             }
 
             void enableInterrupt()
