@@ -35,6 +35,8 @@ namespace msp430hal
                 {
                     case ComparatorInput::ca_0:
                         CACTL1 |= CAEX;
+                        if (m_non_inverting_input >= ComparatorInput::vcc_025 && m_non_inverting_input <= ComparatorInput::diode_reference)
+                            CACTL1 &= ~CARSEL;
                         CACTL2 &= 0xbb;
                         CACTL2 |= 0x04;
                         //Make sure non-inverting input gets signal from second multiplexer
@@ -78,6 +80,8 @@ namespace msp430hal
                     case ComparatorInput::ca_6:
                     case ComparatorInput::ca_7:
                         CACTL1 &= ~CAEX;
+                        if (m_non_inverting_input >= ComparatorInput::vcc_025 && m_non_inverting_input <= ComparatorInput::diode_reference)
+                            CACTL1 |= CARSEL;
                         //TODO take care if reference voltage is applied to other input
                         CACTL2 &= 0xc7;
                         CACTL2 |= input << 3;
@@ -142,6 +146,8 @@ namespace msp430hal
                 {
                     case ComparatorInput::ca_0:
                         CACTL1 &= ~CAEX;
+                        if (m_inverting_input >= ComparatorInput::vcc_025 && m_inverting_input <= ComparatorInput::diode_reference)
+                            CACTL1 |= CARSEL;
                         CACTL2 &= 0xbb;
                         CACTL2 |= 0x04;
                         //Make sure inverting input gets signal from second multiplexer
@@ -186,6 +192,8 @@ namespace msp430hal
                     case ComparatorInput::ca_6:
                     case ComparatorInput::ca_7:
                         CACTL1 |= CAEX;
+                        if (m_inverting_input >= ComparatorInput::vcc_025 && m_inverting_input <= ComparatorInput::diode_reference)
+                            CACTL1 &= ~CARSEL;
                         CACTL2 &= 0xc7;
                         CACTL2 |= input << 3;
                         //Make sure inverting input gets input from first multiplexer
