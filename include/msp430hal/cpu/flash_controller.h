@@ -42,7 +42,7 @@ namespace msp430hal
         }
 
 
-        bool eraseSegment(std::uint16_t segment_address, bool watchdog_active = false)
+        inline bool eraseSegment(std::uint16_t segment_address, bool watchdog_active = false)
         {
             if (watchdog_active)
                 timer::stopWatchdog();
