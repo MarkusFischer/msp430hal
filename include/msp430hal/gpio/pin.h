@@ -5,31 +5,12 @@
 #include <cstdint>
 #include <type_traits>
 
+#include "_gpio_registers.h"
+
 namespace msp430hal
 {
     namespace gpio
     {
-
-        enum Pin : std::uint_fast8_t
-        {
-            p_0 = 0x01,
-            p_1 = 0x02,
-            p_2 = 0x04,
-            p_3 = 0x08,
-            p_4 = 0x10,
-            p_5 = 0x20,
-            p_6 = 0x40,
-            p_7 = 0x80
-        };
-
-        enum Port : std::uint_fast8_t
-        {
-            port_1 = 0x0,
-            port_2 = 0x1,
-            port_3 = 0x2,
-            port_4 = 0x3
-        };
-
         enum class Mode
         {
             output,
@@ -58,42 +39,19 @@ namespace msp430hal
             secondary_peripheral
         };
 
-        namespace
-        {
-            static constexpr volatile std::uint8_t* gpio_registers[][9] = {
-                    {&P1IN, &P1OUT, &P1DIR, &P1IFG, &P1IES, &P1IE, &P1SEL, &P1SEL2, &P1REN},
-#ifdef __MSP430_HAS_PORT2_R__
-                    {&P2IN, &P2OUT, &P2DIR, &P2IFG, &P2IES, &P2IE, &P2SEL, &P2SEL2, &P2REN},
-#endif
-#ifdef __MSP430_HAS_PORT3_R__
-                    {&P3IN, &P3OUT, &P3DIR, nullptr, nullptr, nullptr, &P3SEL, &P3SEL2, &P3REN},
-#endif
-#ifdef __MSP430_HAS_PORT4_R__
-                    {&P4IN, &P4OUT, &P4DIR, nullptr, nullptr, nullptr, &P4SEL, &P4SEL2, &P4REN},
-#endif
-            };
-
-            template<Port port>
-            constexpr volatile std::uint8_t* getGPIORegister(int reg_no)
-            {
-                return gpio_registers[port][reg_no];
-            }
-        }
-
-
         //TODO: GPIO Pin group over multiple ports
         template<Port port, std::uint8_t pins, Mode mode = Mode::output, PinResistors resistor = PinResistors::internal_pullup>
         struct GPIOPins
         {
-            static constexpr volatile std::uint8_t* in = getGPIORegister<port>(0);
-            static constexpr volatile std::uint8_t* out = getGPIORegister<port>(1);
-            static constexpr volatile std::uint8_t* dir = getGPIORegister<port>(2);
-            static constexpr volatile std::uint8_t* ifg = getGPIORegister<port>(3);
-            static constexpr volatile std::uint8_t* ies = getGPIORegister<port>(4);
-            static constexpr volatile std::uint8_t* ie = getGPIORegister<port>(5);
-            static constexpr volatile std::uint8_t* sel = getGPIORegister<port>(6);
-            static constexpr volatile std::uint8_t* sel2 = getGPIORegister<port>(7);
-            static constexpr volatile std::uint8_t* ren = getGPIORegister<port>(8);
+            static constexpr volatile std::uint8_t* in = _gpio_registers::getGPIORegister(0, port);
+            static constexpr volatile std::uint8_t* out = _gpio_registers::getGPIORegister(1, port);
+            static constexpr volatile std::uint8_t* dir = _gpio_registers::getGPIORegister(2, port);
+            static constexpr volatile std::uint8_t* ifg = _gpio_registers::getGPIORegister(3, port);
+            static constexpr volatile std::uint8_t* ies = _gpio_registers::getGPIORegister(4, port);
+            static constexpr volatile std::uint8_t* ie = _gpio_registers::getGPIORegister(5, port);
+            static constexpr volatile std::uint8_t* sel = _gpio_registers::getGPIORegister(6, port);
+            static constexpr volatile std::uint8_t* sel2 = _gpio_registers::getGPIORegister(7, port);
+            static constexpr volatile std::uint8_t* ren = _gpio_registers::getGPIORegister(8, port);
 
             static const Port port_value = port;
             static const std::uint8_t pins_value = pins;
