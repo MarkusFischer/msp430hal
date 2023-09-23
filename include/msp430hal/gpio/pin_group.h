@@ -11,18 +11,30 @@ namespace msp430hal
 {
     namespace gpio
     {
-        template<std::size_t size>
-        class StaticPinGroup
+        struct PinGroupElement
         {
-        public:
-            struct PinGroupElement
-            {
-                Pin pin;
-                Port port;
-            };
+            Pin pin;
+            Port port;
+        };
+
+        template<std::size_t size>
+        class PinGroup
+        {
         private:
             PinGroupElement m_elements[size];
         public:
+
+            PinGroup(std::initializer_list<PinGroupElement> elements)
+            {
+                std::size_t index = 0;
+                for (auto element : elements)
+                {
+                    m_elements[index] = element;
+                    index++;
+                    if (index > size)
+                        break;
+                }
+            }
 
             inline void bind(std::initializer_list<PinGroupElement> elements)
             {
