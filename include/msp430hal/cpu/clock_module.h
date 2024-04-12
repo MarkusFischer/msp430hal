@@ -7,11 +7,12 @@ namespace msp430hal
 {
     namespace cpu
     {
+        /// \brief this enumeration encodes the available clocks
         enum Clock
         {
-            mclk,
-            smclk,
-            aclk
+            mclk, ///< main clock
+            smclk, ///< sub-main clock
+            aclk ///< auxillary clock
         };
 
         enum ClockSource
@@ -21,12 +22,13 @@ namespace msp430hal
             xt1clk
         };
 
+        /// \brief specifies the prescaler used by the clock
         enum Divider
         {
-            times_1 = 0b00,
-            times_2 = 0b01,
-            times_4 = 0b10,
-            times_8 = 0b11
+            times_1 = 0b00, ///< divide speed of clock source by 1
+            times_2 = 0b01, ///< divide speed of clock source by 2
+            times_4 = 0b10, ///< divide speed of clock source by 4
+            times_8 = 0b11 ///< divide speed of clock source by 8
         };
 
         enum HighFrequencyRange

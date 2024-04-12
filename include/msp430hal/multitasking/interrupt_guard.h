@@ -7,6 +7,7 @@ namespace msp430hal
 {
     namespace multitasking
     {
+        /// \brief a simple guard that disables interrupts at creation and reenables them when destroyed
         struct InterruptGuard
         {
             InterruptGuard()
