@@ -7,28 +7,38 @@ namespace msp430hal
 {
     namespace peripherals
     {
+        /// \brief Specifies all possible (external and internal) input sources for the Comparator B Peripheral
         enum ComparatorInput : std::uint_fast8_t
         {
-            ca_0 = 0,
-            ca_1,
-            ca_2,
-            ca_3,
-            ca_4,
-            ca_5,
-            ca_6,
-            ca_7,
-            vcc_025,
-            vcc_05,
-            diode_reference,
-            no_connection
+            ca_0 = 0, ///< Pin CA0
+            ca_1, ///< Pin CA1
+            ca_2, ///< Pin CA2
+            ca_3, ///< Pin CA3
+            ca_4, ///< Pin CA4
+            ca_5, ///< Pin CA5
+            ca_6, ///< Pin CA6
+            ca_7, ///< Pin CA7
+            vcc_025, ///< internal 0.25 * VCC reference
+            vcc_05, ///< internal 0.5 * VCC reference
+            diode_reference, ///< internal 0.7 V reference (diode)
+            no_connection ///< no connection at all
         };
 
+        /// \brief This class represents the Comparator B Peripheral.
         class Comparator
         {
             ComparatorInput m_inverting_input;
             ComparatorInput m_non_inverting_input;
         public:
 
+            /// \brief Set the input source of the inverting input of the comparator.
+            ///
+            /// Set the input source of the inverting input to the specified input. All possible internal or external sources can be used.
+            /// When the internal voltage reference gets used or was used before, this method enables/disables the reference voltage generator automatically.
+            /// Additionally, this method ensures, that both the inverting and the non-inverting input are configured valid e.g. by swapping the inputs if necessary.
+            /// This includes that inputs will be disabled if the input sources for the inverting and non-inverting input are on the same multiplexer.
+            ///
+            /// \param input The input source for the inverting input.
             void setInvertingInput(ComparatorInput input)
             {
                 switch(input)
@@ -140,6 +150,9 @@ namespace msp430hal
                 m_inverting_input = input;
             }
 
+            /// \brief Set the input source of the non-inverting input of the comparator.
+            ///
+            /// \param input The input source for the non-inverting input.
             void setNonInvertingInput(ComparatorInput input)
             {
                 switch(input)
@@ -251,41 +264,49 @@ namespace msp430hal
                 m_non_inverting_input = input;
             }
 
+            /// \brief Enable the comparator peripheral.
             void enable()
             {
                 CACTL1 |= CAON;
             }
 
+            /// \brief Disable the comparator peripheral.
             void disable()
             {
                 CACTL1 &= ~CAON;
             }
 
+            /// \brief Toggle if the inputs are shorted or not.
             void toggleShortInputs()
             {
                 CACTL2 ^= CASHORT;
             }
 
+            /// \brief Exchange the input sources of the inverting and the non-inverting input
             void exchangeInputs()
             {
                 CACTL1 ^= CAEX;
             }
 
+            /// \brief Enables, that an interrupt is thrown (or the corresponding status bit is set) when the output of the comparator transition from low to high.
             void interruptOnRisingEdge()
             {
                 CACTL1 &= ~CAIES;
             }
 
+            /// \brief Enables, that an interrupt is thrown (or the corresponding status bit is set) when the output of the comparator transition from high to low.
             void interruptOnFallingEdge()
             {
                 CACTL1 |= CAIES;
             }
 
+            /// \brief Enable that the comparator peripherals throw interrupts.
             void enableInterrupt()
             {
                 CACTL1 |= CAIE;
             }
 
+            /// \brief Disable interrupts from the comparator peripheral.
             void disableInterrupt()
             {
                 CACTL1 &= ~CAIE;
@@ -296,16 +317,21 @@ namespace msp430hal
                 return CACTL1 & CAIFG;
             }
 
+            /// \brief Enable the internal low-pass filter on the output.
             void enableOutputFilter()
             {
                 CACTL2 |= CAF;
             }
 
+            /// \brief Disable the internal low-pass filter on the output.
             void disableOutputFilter()
             {
                 CACTL2 &= ~CAF;
             }
 
+            /// \brief get the current output state of the comparator
+            ///
+            /// \return true if the non-inverting input has a higher voltage level than the inverting input. Otherwise false.
             bool getOutput()
             {
                 return CACTL2 & CAOUT;
