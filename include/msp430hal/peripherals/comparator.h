@@ -152,6 +152,11 @@ namespace msp430hal
 
             /// \brief Set the input source of the non-inverting input of the comparator.
             ///
+            /// Set the input source of the non-inverting input to the specified input. All possible internal or external sources can be used.
+            /// When the internal voltage reference gets used or was used before, this method enables/disables the reference voltage generator automatically.
+            /// Additionally, this method ensures, that both the inverting and the non-inverting input are configured valid e.g. by swapping the inputs if necessary.
+            /// This includes that inputs will be disabled if the input sources for the inverting and non-inverting input are on the same multiplexer.
+            ///
             /// \param input The input source for the non-inverting input.
             void setNonInvertingInput(ComparatorInput input)
             {

@@ -9,36 +9,40 @@ namespace msp430hal
 {
     namespace timer
     {
+        /// \brief Specifies the available clock sources for the timer.
         enum TimerClockSource : std::uint16_t
         {
-            taclk = TASSEL_0,
-            aclk = TASSEL_1,
-            smclk = TASSEL_2,
-            inclk = TASSEL_3
+            txclk = TASSEL_0, ///< External timer X clock.
+            aclk = TASSEL_1, ///< Internal auxillary clock.
+            smclk = TASSEL_2, ///< Internal sub-main clock.
+            inclk = TASSEL_3 ///< External device-specific clock source. Usually TBCLK.
         };
 
+        /// \brief Specifies the input divider factor of the timer clock.
         enum TimerClockInputDivider : std::uint16_t
         {
-            times_1 = ID_0,
-            times_2 = ID_1,
-            times_4 = ID_2,
-            times_8 = ID_3
+            times_1 = ID_0, ///< Divide by 1.
+            times_2 = ID_1, ///< Divide by 2.
+            times_4 = ID_2, ///< Divide by 4.
+            times_8 = ID_3 ///< Divide by 8.
         };
 
+        /// \brief Specifies the working mode of the timer.
         enum TimerMode : std::uint16_t
         {
-            stop = MC_0,
-            up = MC_1,
-            continuous = MC_2,
-            up_down = MC_3
+            stop = MC_0, ///< Timer stopped.
+            up = MC_1, ///< Timer counts up til the content of TxCCR0/TxCL0
+            continuous = MC_2, ///< Timer counts up to the maximum possible value.
+            up_down = MC_3 ///< Timer count up to the value of TxCCR0/TxCL0 and then down to 0.
         };
 
+        /// \brief Specifies the mode of the capture module.
         enum TimerCaptureMode : std::uint16_t
         {
-            none = CM_0,
-            rising_edge = CM_1,
-            falling_edge = CM_2,
-            edge = CM_3
+            none = CM_0, ///< Disable capture mode.
+            rising_edge = CM_1, ///< Capture at a rising edge.
+            falling_edge = CM_2, ///< Capture at a falling edge.
+            edge = CM_3 ///< Capture at any edge.
         };
 
         enum CaptureCompareInputSelect : std::uint16_t
@@ -61,15 +65,18 @@ namespace msp430hal
             reset_set = OUTMOD_7
         };
 
+        /// \brief Specifies the Timer modules.
         enum TimerModule
         {
-            timer_a,
-            timer_b
+            timer_a, ///< Use Timer A.
+            timer_b ///< Use Timer B.
         };
 
         //
         namespace
         {
+
+            //Arrays with the configuration registers for each available timer and template functions to access them easily.
             constexpr volatile unsigned int* timer_a_registers[][17]{
 #ifdef __MSP430_HAS_TA3__
                     {&TA0CTL, &TA0R, &TA0CCTL0, &TA0CCR0, &TA0CCTL1, &TA0CCR1, &TA0CCTL2, &TA0CCR2, nullptr, nullptr,
@@ -159,6 +166,11 @@ namespace msp430hal
 
 #endif
         }
+
+        /// \brief This class gives a unified interface for the different timer modules.
+        ///
+        /// \tparam module The timer module type that will be used.
+        /// \tparam instance The actual timer instance of that timer module.
         template<const TimerModule module,
                 const int instance>
         struct Timer_t
@@ -170,6 +182,9 @@ namespace msp430hal
             using capture_control_registers = CaptureControlRegisters<module, instance>;
 
 
+            /// \brief Reset the timer.
+            ///
+            /// Clears the TAR register, sets the clock divider to 1 and stops the timer.
             static void reset()
             {
 #ifdef __GNUC__
@@ -223,6 +238,10 @@ namespace msp430hal
                 *ctl = mode + divider + clock_source;
             }
 
+            /// \brief Configures the mode (on which edge should be captured?) for a specific capture unit.
+            ///
+            /// \tparam capture_unit The capture unit that will be configured.
+            /// \param mode The mode for the capture unit.
             template<std::uint_fast8_t capture_unit>
             static void setCaptureMode(TimerCaptureMode mode)
             {
@@ -230,6 +249,12 @@ namespace msp430hal
                 *capture_control_registers::data[capture_unit][0] |= mode;
             }
 
+            /// \brief Configures the input for a specific capture unit.
+            ///
+            /// On which input should the capture unit wait for captures (changing edges)
+            ///
+            /// \tparam capture_unit The capture unit that will be configured.
+            /// \param input The capture/compare input to be used.
             template<std::uint_fast8_t capture_unit>
             static void selectCaptureCompareInput(CaptureCompareInputSelect input)
             {
@@ -237,30 +262,70 @@ namespace msp430hal
                 *capture_control_registers::data[capture_unit][0] |= input;
             }
 
+            /// \brief Enables synchronous captures.
+            ///
+            /// The current timer value is copied and interrupt flag after a capture are set the next timer clock cycle:
+            ///
+            /// \tparam capture_unit The capture that will be configured.
             template<std::uint_fast8_t capture_unit>
             static void synchronousCapture()
             {
                 *capture_control_registers::data[capture_unit][0] |= 0x0800;
             }
 
+            /// \brief Enables asynchronous captures.
+            ///
+            /// The current timer value is copied and interrupt flag after a capture are set independent of the timer clock cycle:
+            ///
+            /// \tparam capture_unit The capture that will be configured.
             template<std::uint_fast8_t capture_unit>
             static void asynchronousCapture()
             {
                 *capture_control_registers::data[capture_unit][0] &= 0xf7ff;
             }
 
+            /// \brief Enable compare mode.
+            ///
+            /// This mode can be used to generate PWM signals or interrupt at specific time intervals.
+            /// When the timer counts to the value of TACCRx the following happens:
+            /// Interrupt flag CCIFG is set
+            // Internal signal EQUx = 1 is set, which affects the output according to the output mode
+            // The input signal CCI is latched into SCCI
+            ///
+            /// \tparam capture_unit The capture unit that will be configured.
             template<std::uint_fast8_t capture_unit>
             static void compareMode()
             {
                 *capture_control_registers::data[capture_unit][0] |= 0xfeff;
             }
 
+            /// \brief Enable capture mode.
+            ///
+            /// When a capture (changing edge) occurs the following happens:
+            /// The current timer value is copied into the TACCRx register
+            /// The interrupt flag CCIFG is set
+            //
+            /// \tparam capture_unit The capture unit that will be configured.
             template<std::uint_fast8_t capture_unit>
             static void captureMode()
             {
                 *capture_control_registers::data[capture_unit][0] |= 0x0100;
             }
 
+            /// \brief Configures the output mode for the time configured in compare mode.
+            ///
+            /// The modes are  the following:
+            /// output The output is determined by the value of the OUT bit.
+            /// Set The output is set when the timer counts to the TACCRx value. It remains set until a reset of the timer, or until another output mode is selected and affects the output.
+            /// Toggle/Reset The output is toggled when the timer counts to the TACCRx value. It is reset when the timer counts to the TACCR0 value.
+            /// Set/Reset The output is set when the timer counts to the TACCRx value. It is reset when the timer counts to the TACCR0 value.
+            /// Toggle The output is toggled when the timer counts to the TACCRx value. The output period is double the timer period.
+            /// Reset The output is reset when the timer counts to the TACCRx value. It remains reset until another output mode is selected and affects the output.
+            /// Toggle/Set The output is toggled when the timer counts to the TACCRx value. It is set when the timer counts to the TACCR0 value.
+            /// Reset/Set The output is reset when the timer counts to the TACCRx value. It is set when the timer counts to the TACCR/ va34e,
+            ///
+            /// \tparam capture_unit The capture unit for which the output behaviour should be configured.
+            /// \param mode The mode used by the capture unit.
             template<std::uint_fast8_t capture_unit>
             static void setOutputMode(TimerOutputMode mode)
             {
@@ -268,12 +333,20 @@ namespace msp430hal
                 *capture_control_registers::data[capture_unit][0] |= mode;
             }
 
+            /// \brief Writes the value in the TACCRx register.
+            ///
+            /// \tparam capture_unit The capture unit for which the TACCRx register should be modified.
+            /// \param compare The value written to the the TACCRx register.
             template<std::uint_fast8_t capture_unit>
             static void setCompareValue(std::uint16_t compare)
             {
                 *capture_control_registers::data[capture_unit][1] = compare;
             }
 
+            /// \brief Reads the value of the TACCRx register.
+            ///
+            /// \tparam capture_unit The capture unit for which the TACCRx register should be read.
+            /// \return The value of the TACCRx register.
             template<std::uint_fast8_t capture_unit>
             static std::uint16_t getCaptureValue()
             {
@@ -285,6 +358,7 @@ namespace msp430hal
             {
                 *capture_control_registers::data[capture_unit][0] |= 0x0010;
             }
+
 
             template<std::uint_fast8_t capture_unit>
             static void disableCaptureCompareInterrupt()
@@ -298,26 +372,41 @@ namespace msp430hal
                 *capture_control_registers::data[capture_unit][0] & 0x0001;
             }
 
+            /// \brief For compare output mode 0 (Output) this sets the output to 1
+            ///
+            /// \tparam capture_unit The capture unit for which the out bit should be modified.
             template<std::uint_fast8_t capture_unit>
             static void setOutput()
             {
                 *capture_control_registers::data[capture_unit][0] |= 0x0004;
             }
 
+            /// \brief For compare output mode 0 (Output) this sets the output to 0
+            ///
+            /// \tparam capture_unit The capture unit for which the out bit should be modified.
             template<std::uint_fast8_t capture_unit>
             static void clearOutput()
             {
                 *capture_control_registers::data[capture_unit][0] &= 0xfffb;
             }
 
+            /// \brief Check if the capture overflow flag is set (COV).
+            ///
+            /// Returns the value of the COV flag. This flag is set when a second capture happened before the value of the first was read.
+            ///
+            /// \tparam capture_unit The capture unit for which the COV flag should be checked.
+            /// \return The value of the COV flag for capture unit.
             template<std::uint_fast8_t capture_unit>
-            static bool overflowOccurred()
+            static bool captureOverflowOccurred()
             {
                 *capture_control_registers::data[capture_unit][0] & 0x0002;
             }
 
+            /// \brief Clear the capture overflow flag (COV)
+            ///
+            /// \tparam capture_unit the capture unit for which the COV flag should be cleared.
             template<std::uint_fast8_t capture_unit>
-            static void clearOverflowFlag()
+            static void clearCaptureOverflowFlag()
             {
                 *capture_control_registers::data[capture_unit][0] &= 0xfffd;
             }
