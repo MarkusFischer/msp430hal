@@ -45,24 +45,26 @@ namespace msp430hal
             edge = CM_3 ///< Capture at any edge.
         };
 
+        /// \brief Selects the input signal for the capture unit.
         enum CaptureCompareInputSelect : std::uint16_t
         {
-            ccixa = CCIS_0,
-            ccixb = CCIS_1,
-            gnd = CCIS_2,
-            vcc = CCIS_3
+            ccixa = CCIS_0, ///< CCIxA
+            ccixb = CCIS_1, ///< CCIxB
+            gnd = CCIS_2, ///< GND (for software initiated captures)
+            vcc = CCIS_3 ///< VCC (for software initiated captures)
         };
 
+        /// \brief specifies the timer compare output mode.
         enum TimerOutputMode : std::uint16_t
         {
-            output = OUTMOD_0,
-            set = OUTMOD_1,
-            toggle_reset = OUTMOD_2,
-            set_reset = OUTMOD_3,
-            toggle = OUTMOD_4,
-            reset = OUTMOD_5,
-            toggle_set = OUTMOD_6,
-            reset_set = OUTMOD_7
+            output = OUTMOD_0, ///< The output is determined by the value of the OUT bit.
+            set = OUTMOD_1, ///< The output is set when the timer counts to the TACCRx value. It remains set until a reset of the timer, or until another output mode is selected and affects the output.
+            toggle_reset = OUTMOD_2, ///< The output is toggled when the timer counts to the TACCRx value. It is reset when the timer counts to the TACCR0 value.
+            set_reset = OUTMOD_3, ///< The output is set when the timer counts to the TACCRx value. It is reset when the timer counts to the TACCR0 value.
+            toggle = OUTMOD_4, ///< The output is toggled when the timer counts to the TACCRx value. The output period is double the timer period.
+            reset = OUTMOD_5, ///< The output is reset when the timer counts to the TACCRx value. It remains reset until another output mode is selected and affects the output.
+            toggle_set = OUTMOD_6, ///< The output is toggled when the timer counts to the TACCRx value. It is set when the timer counts to the TACCR0 value.
+            reset_set = OUTMOD_7 ///< The output is reset when the timer counts to the TACCRx value. It is set when the timer counts to the TACCR0 value.
         };
 
         /// \brief Specifies the Timer modules.
@@ -197,11 +199,15 @@ namespace msp430hal
 #endif
             }
 
+            /// \brief Checks if a timer overflow interrupt is pending.
+            ///
+            /// \return The value of the timer overflow flag TAIFG.
             static bool isInterruptPending()
             {
                 return (*ctl & TAIFG);
             }
 
+            /// \brief Enables the timer overflow interrupt.
             static void enableInterrupt()
             {
 #ifdef __GNUC__
@@ -214,24 +220,38 @@ namespace msp430hal
 #endif
             }
 
+            /// \brief Sets working mode (count direction) for the timer.
+            ///
+            /// \param mode The working mode (count direction) which will be used.
             static void setMode(TimerMode mode)
             {
                 *ctl &= 0xffcf;
                 *ctl |= mode;
             }
 
+            /// \brief Sets the input divider for the timer clock source.
+            ///
+            /// \param divider The input dividier used by the timer.
             static void setInputDivider(TimerClockInputDivider divider)
             {
                 *ctl &= 0xff3f;
                 *ctl |= divider;
             }
 
+            /// \brief Selects the clock that will be used by the timer.
+            ///
+            /// \param clock_source The clock used by the timer.
             static void selectClockSource(TimerClockSource clock_source)
             {
                 *ctl &= 0xfcff;
                 *ctl |= clock_source;
             }
 
+            /// \brief Initialize the timer by selecting the mode, clock source and the input divider.
+            ///
+            /// \param mode The working mode (count direction) which will be used.
+            /// \param clock_source The clock used by the timer.
+            /// \param divider The input dividier used by the timer.
             static void init(TimerMode mode, TimerClockSource clock_source, TimerClockInputDivider divider)
             {
                 *ctl &= 0xfc07;
@@ -353,6 +373,9 @@ namespace msp430hal
                 return *capture_control_registers::data[capture_unit][1];
             }
 
+            /// \brief Enables that a interrupt is thrown when a capture or compare event occurs.
+            ///
+            /// \tparam capture_unit The capture unit for which the interrupt should be thrown.
             template<std::uint_fast8_t capture_unit>
             static void enableCaptureCompareInterrupt()
             {
@@ -360,16 +383,23 @@ namespace msp430hal
             }
 
 
+            /// \brief Disable that a interrupt is thrown when a capture or compare event occurs.
+            ///
+            /// \tparam capture_unit The capture unit for which the interrupt should be thrown.
             template<std::uint_fast8_t capture_unit>
             static void disableCaptureCompareInterrupt()
             {
                 *capture_control_registers::data[capture_unit][0] &= 0xffef;
             }
 
+            /// \brief Reads the capture/compare interrupt flag CCIFG.
+            ///
+            /// \tparam capture_unit The capture/compare unit for which the CCIFG flag should be read.
+            /// \return True if CCIFG is set, false otherwise.
             template<std::uint_fast8_t capture_unit>
             static bool isCaptureCompareInterruptPending()
             {
-                *capture_control_registers::data[capture_unit][0] & 0x0001;
+                return *capture_control_registers::data[capture_unit][0] & 0x0001;
             }
 
             /// \brief For compare output mode 0 (Output) this sets the output to 1
@@ -399,7 +429,7 @@ namespace msp430hal
             template<std::uint_fast8_t capture_unit>
             static bool captureOverflowOccurred()
             {
-                *capture_control_registers::data[capture_unit][0] & 0x0002;
+                return *capture_control_registers::data[capture_unit][0] & 0x0002;
             }
 
             /// \brief Clear the capture overflow flag (COV)
