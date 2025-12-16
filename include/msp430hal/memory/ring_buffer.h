@@ -10,7 +10,7 @@ namespace msp430hal
         template<std::size_t capacity>
         struct byte_ring_buffer
         {
-            static std::uint8_t m_buffer[capacity];
+            std::uint8_t m_buffer[capacity];
 
             void insert(std::uint8_t byte)
             {

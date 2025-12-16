@@ -17,17 +17,11 @@ namespace msp430hal
             uart_automatic_baud = 0x06
         };
 
-        enum UARTClockSource : std::uint8_t
-        {
-            uclk = 0x00,
-            aclk = 0x40,
-            smclk = 0x80
-        };
 
         template<std::uint8_t instance,
                  std::uint32_t baud_rate,
                  std::uint32_t brclk,
-                 UARTClockSource clock_source = uclk,
+                 UsciClockSource clock_source = uclk,
                  bool oversampling_baud_generator = false,
                  bool enable_parity = false,
                  bool even_parity = false,
@@ -39,7 +33,7 @@ namespace msp430hal
 
         struct UART_t
         {
-            typedef Usci_t<UsciModule::usci_a, instance> Usci;
+            using Usci = Usci_t<UsciModule::usci_a, instance>;
 
             static constexpr double division_factor()
             {
@@ -57,7 +51,7 @@ namespace msp430hal
             static constexpr bool two_stop_bits_value = two_stop_bits;
             static constexpr UARTMode mode_value = mode;
             static constexpr bool sync_mode_value = sync_mode;
-            static constexpr UARTClockSource clock_source_value = clock_source;
+            static constexpr UsciClockSource clock_source_value = clock_source;
 
             static constexpr std::uint16_t ucbr_value()
             {

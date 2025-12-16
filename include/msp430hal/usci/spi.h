@@ -33,24 +33,26 @@ namespace msp430hal::usci
         active_low_trailing_edge = 0xc0
     };
 
-    enum SPIClockSource : std::uint8_t
-    {
-        aclk = 0x40,
-        smclk = 0x80
-    };
-
-    template<const UsciModule module,
-            const int instance,
-            const SPIMode mode = master_3pin,
-            const SPICharacterFormat format = msb_8bit,
-            const SPIClockMode clock_mode = active_high_leading_edge,
-            const SPIClockSource clock_source = smclk,
-            const std::uint16_t pre_scale_factor = 1>
-    struct BlockingSpi
+    template<UsciModule module,
+            std::uint_fast8_t instance,
+            SPIMode mode = master_3pin,
+            SPICharacterFormat format = msb_8bit,
+            SPIClockMode clock_mode = active_high_leading_edge,
+            UsciClockSource clock_source = uclk,
+            std::uint16_t pre_scale_factor = 1>
+    struct SPI_t
     {
         using Usci = Usci_t<module, instance>;
 
-        void init()
+        static constexpr UsciModule module_value = module;
+        static constexpr std::uint_fast8_t instance_value = instance;
+        static constexpr SPIMode mode_value = mode;
+        static constexpr SPICharacterFormat format_value = format;
+        static constexpr SPIClockMode clock_mode_value = clock_mode;
+        static constexpr UsciClockSource clock_source_value = clock_source;
+        static constexpr std::uint16_t pre_scale_factor_value = pre_scale_factor;
+
+        static void init()
         {
             Usci::disableModule();
 
@@ -58,28 +60,54 @@ namespace msp430hal::usci
             *Usci::ctl_1 |= clock_source;
             *Usci::br_0 = (std::uint8_t) (0x00ff & pre_scale_factor);
             *Usci::br_1 = (std::uint8_t) ((0xff00 & pre_scale_factor) >> 8);
+            // TODO configure ports
 
             Usci::enableModule();
         }
 
-        void sendByte(std::uint8_t byte)
+        static void enableLoopback()
         {
-            while (!Usci::isTxInterruptPending());
-            *Usci::tx_buf = byte;
+            *Usci::stat |= UCLISTEN;
         }
 
-        std::uint8_t readByte()
+        static void disableLoopback()
         {
-            while (!Usci::isRxInterruptPending());
-            return *Usci::rx_buf;
+            *Usci::stat &= ~UCLISTEN;
         }
 
-        void enable()
+        static bool loopback()
+        {
+            return *Usci::stat & UCLISTEN;
+        }
+
+        static bool readFramingError()
+        {
+            return *Usci::stat & UCFE;
+        }
+
+        static bool framingError()
+        {
+            bool error = *Usci::stat & UCFE;
+            *Usci::stat &= ~UCFE;
+            return error;
+        }
+
+        static bool readOverrunError()
+        {
+            return *Usci::stat & UCOE;
+        }
+
+        static bool overrunError()
+        {
+            return readOverrunError();
+        }
+
+        static void enable()
         {
             Usci::enableModule();
         }
 
-        void disable()
+        static void disable()
         {
             Usci::disableModule();
         }

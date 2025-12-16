@@ -20,6 +20,13 @@ namespace msp430hal
             usci_b
         };
 
+        enum UsciClockSource : std::uint8_t
+        {
+            uclk = 0x00,
+            aclk = 0x40,
+            smclk = 0x80
+        };
+
         namespace
         {
 
@@ -30,10 +37,10 @@ namespace msp430hal
 #endif
             };
 
-            static constexpr volatile uint8_t* usci_b_reg[][9] = {
-                    {&UCB0CTL0, &UCB0CTL1, &UCB0BR0, &UCB0BR1, nullptr, &UCB0STAT, &UCB0RXBUF, &UCB0TXBUF, nullptr},
+            static constexpr volatile uint8_t* usci_b_reg[][11] = {
+                    {&UCB0CTL0, &UCB0CTL1, &UCB0BR0, &UCB0BR1, nullptr, &UCB0STAT, &UCB0RXBUF, &UCB0TXBUF, nullptr, &IE2, &IFG2},
 #ifdef __MSP430_HAS_USCI_AB1__
-                    {&UCB1CTL0, &UCB1CTL1, &UCB1BR0, &UCB1BR1, nullptr, &UCB1STAT, &UCB1RXBUF, &UCB1TXBUF, nullptr},
+                    {&UCB1CTL0, &UCB1CTL1, &UCB1BR0, &UCB1BR1, nullptr, &UCB1STAT, &UCB1RXBUF, &UCB1TXBUF, nullptr, &UC1IE, &UC1IFG},
 #endif
             };
 
@@ -63,6 +70,8 @@ namespace msp430hal
             static constexpr volatile std::uint8_t* rx_buf = getUsciRegister<usci_module, instance>(6);
             static constexpr volatile std::uint8_t* tx_buf = getUsciRegister<usci_module, instance>(7);
             static constexpr volatile std::uint8_t* ab_ctl = getUsciRegister<usci_module, instance>(8);
+            static constexpr volatile std::uint8_t* ie = getUsciRegister<usci_module, instance>(9);
+            static constexpr volatile std::uint8_t* ifg = getUsciRegister<usci_module, instance>(10);
 
             static const UsciModule usci_module_value = usci_module;
 
