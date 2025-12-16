@@ -6,11 +6,18 @@
 #include <type_traits>
 
 #include "_gpio_registers.h"
+#include "../util/math.h"
 
 namespace msp430hal
 {
     namespace gpio
     {
+        namespace
+        {
+            struct GPIOPins_base
+            {};
+        }
+
         enum class Mode
         {
             output,
@@ -41,7 +48,7 @@ namespace msp430hal
 
         //TODO: GPIO Pin group over multiple ports
         template<Port port, std::uint8_t pins, Mode mode = Mode::output, PinResistors resistor = PinResistors::internal_pullup>
-        struct GPIOPins
+        struct GPIOPins : GPIOPins_base
         {
             static constexpr volatile std::uint8_t* in = _gpio_registers::getGPIORegister(0, port);
             static constexpr volatile std::uint8_t* out = _gpio_registers::getGPIORegister(1, port);
@@ -58,17 +65,17 @@ namespace msp430hal
             static const Mode mode_value = mode;
             static const PinResistors resistor_value = resistor;
 
-            static inline void init()
+            static void init()
             {
                 // if constexpr would be nice; However, the initialization is usually called only once, hence we could rely on compiler optimization because the worst case has no big impact
-                if (mode == Mode::output)
+                if constexpr (mode == Mode::output)
                     *dir |= pins;
                 else
                 {
                     *dir &= ~pins;
-                    if (resistor == PinResistors::internal_pullup || resistor == PinResistors::internal_pulldown)
+                    if constexpr (resistor == PinResistors::internal_pullup || resistor == PinResistors::internal_pulldown)
                     {
-                        if (resistor == PinResistors::internal_pullup)
+                        if constexpr (resistor == PinResistors::internal_pullup)
                             *out |= pins;
                         else
                             *out &= ~pins;
@@ -76,7 +83,7 @@ namespace msp430hal
                     }
                     else
                     {
-                        if (resistor == PinResistors::external_pullup)
+                        if constexpr (resistor == PinResistors::external_pullup)
                             *out |= pins;
                         else
                             *out &= ~pins;
@@ -85,7 +92,7 @@ namespace msp430hal
                 }
             }
 
-            static inline void init(PinFunction function)
+            static void init(PinFunction function)
             {
                 init();
                 switch (function)
@@ -112,7 +119,33 @@ namespace msp430hal
                 }
             }
 
-            static inline std::uint8_t inputLevel()
+            static void switchFunction(PinFunction function)
+            {
+                switch (function)
+                {
+                    case PinFunction::io:
+                        *sel &= ~pins;
+                        *sel2 &= ~pins;
+                        break;
+
+                    case PinFunction::primary_peripheral:
+                        *sel |= pins;
+                        *sel2 &= ~pins;
+                        break;
+
+                    case PinFunction::device_specific:
+                        *sel &= ~pins;
+                        *sel2 |= pins;
+                        break;
+
+                    case PinFunction::secondary_peripheral:
+                        *sel |= pins;
+                        *sel2 |= pins;
+                        break;
+                }
+            }
+
+            static std::uint8_t inputLevel()
             {
                 return *in & pins;
             }
@@ -125,29 +158,29 @@ namespace msp430hal
                     return (*in & pins) > 0;
             }
 
-            static inline void toggle()
+            static void toggle()
             {
                 *out ^= pins;
             }
 
-            static inline void set()
+            static void set()
             {
                 *out |= pins;
             }
 
-            static inline void clear()
+            static void clear()
             {
                 *out &= ~pins;
             }
 
             template<typename T = Port>
-            static inline void enableInterrupt(typename std::enable_if<(port <= 1), T>::type* = 0)
+            static void enableInterrupt(typename std::enable_if<(port <= 1), T>::type* = 0)
             {
                 *ie |= pins;
             }
 
             template<typename T = Port>
-            static inline void disableInterrupt(typename std::enable_if<(port <= 1), T>::type* = 0)
+            static void disableInterrupt(typename std::enable_if<(port <= 1), T>::type* = 0)
             {
                 if (port == Port::port_1 || port == Port::port_2)
                 {
@@ -156,7 +189,7 @@ namespace msp430hal
             }
 
             template<typename T = Port>
-            static inline void setInterruptEdge(InterruptEdge edge, typename std::enable_if<(port <= 1), T>::type* = 0)
+            static void setInterruptEdge(InterruptEdge edge, typename std::enable_if<(port <= 1), T>::type* = 0)
             {
                 if (port == Port::port_1 || port == Port::port_2)
                 {
@@ -168,7 +201,7 @@ namespace msp430hal
             }
 
             template<typename T = Port>
-            static inline std::uint_fast8_t interruptFlag(typename std::enable_if<(port <= 1), T>::type* = 0)
+            static std::uint_fast8_t interruptFlag(typename std::enable_if<(port <= 1), T>::type* = 0)
             {
                 if (port == Port::port_1 || port == Port::port_2)
                 {
@@ -176,7 +209,42 @@ namespace msp430hal
                 }
                 return 0;
             }
+
+            template<typename T = Port>
+            static std::uint_fast8_t clearInterruptFlag(typename std::enable_if<(port <= 1), T>::type* = 0)
+            {
+                if (port == Port::port_1 || port == Port::port_2)
+                {
+                    *ifg &= ~pins;
+                }
+                return 0;
+            }
+
+            template<typename T = Port>
+            static std::uint_fast8_t setInterruptFlag(typename std::enable_if<(port <= 1), T>::type* = 0)
+            {
+                if (port == Port::port_1 || port == Port::port_2)
+                {
+                    *ifg |= pins;
+                }
+                return 0;
+            }
         };
+
+        template<Port port, std::uint8_t pin, Mode mode = Mode::output, PinResistors resistor = PinResistors::internal_pullup>
+        struct GPIOPin : GPIOPins<port, pin, mode, resistor>
+        {
+            static_assert(is_power_of_two(pin), "Only a single pin can be specified");
+        };
+
+        template<typename T>
+        struct is_GPIO_Pin
+        {
+            static constexpr bool value = std::is_base_of_v<GPIOPins_base, T>;
+        };
+
+        template<typename T>
+        inline constexpr bool is_GPIO_Pin_v = is_GPIO_Pin<T>::value;
     }
 }
 
