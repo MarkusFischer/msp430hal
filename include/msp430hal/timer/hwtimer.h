@@ -128,6 +128,7 @@ namespace msp430hal
             {
                 return (timer_module == TimerModule::timer_a) ? timer_a_registers[instance][reg_no] : timer_b_registers[instance][reg_no];
             }
+#endif
 
             template<const TimerModule module, const std::uint_fast8_t instance>
             struct CaptureControlRegisters
@@ -165,8 +166,6 @@ namespace msp430hal
             template<const std::uint_fast8_t instance>
             constexpr volatile unsigned int* CaptureControlRegisters<TimerModule::timer_b, instance>::data[7][2];
 
-
-#endif
         }
 
         /// \brief This class gives a unified interface for the different timer modules.
